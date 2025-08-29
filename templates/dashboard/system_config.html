@@ -1,0 +1,610 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}System Configuration - HRIS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h2 mb-1">System Configuration</h1>
+        <p class="text-muted mb-0">Configure system-wide settings and preferences.</p>
+    </div>
+    <div>
+        <button class="btn btn-success" onclick="saveAllSettings()">
+            <i class="fas fa-save me-2"></i>Save All Changes
+        </button>
+    </div>
+</div>
+
+<!-- Configuration Tabs -->
+<ul class="nav nav-tabs mb-4" id="configTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="general-tab" data-bs-toggle="tab" data-bs-target="#general" type="button">
+            <i class="fas fa-cog me-2"></i>General
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="enrollment-tab" data-bs-toggle="tab" data-bs-target="#enrollment" type="button">
+            <i class="fas fa-calendar me-2"></i>Enrollment
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="notifications-tab" data-bs-toggle="tab" data-bs-target="#notifications" type="button">
+            <i class="fas fa-bell me-2"></i>Notifications
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="integration-tab" data-bs-toggle="tab" data-bs-target="#integration" type="button">
+            <i class="fas fa-plug me-2"></i>Integrations
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="security-tab" data-bs-toggle="tab" data-bs-target="#security" type="button">
+            <i class="fas fa-shield-alt me-2"></i>Security
+        </button>
+    </li>
+</ul>
+
+<div class="tab-content" id="configTabContent">
+    <!-- General Settings -->
+    <div class="tab-pane fade show active" id="general" role="tabpanel">
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="card-title mb-0">Company Information</h6>
+                    </div>
+                    <div class="card-body">
+                        <form>
+                            <div class="mb-3">
+                                <label for="companyName" class="form-label">Brokerage Name</label>
+                                <input type="text" class="form-control" id="companyName" value="Acme Benefits Consulting">
+                            </div>
+                            <div class="mb-3">
+                                <label for="companyLogo" class="form-label">Company Logo</label>
+                                <input type="file" class="form-control" id="companyLogo" accept="image/*">
+                                <div class="form-text">Recommended: 200x60px PNG or SVG</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="timezone" class="form-label">Default Timezone</label>
+                                <select class="form-select" id="timezone">
+                                    <option value="US/Eastern">Eastern Time (US & Canada)</option>
+                                    <option value="US/Central">Central Time (US & Canada)</option>
+                                    <option value="US/Mountain">Mountain Time (US & Canada)</option>
+                                    <option value="US/Pacific" selected>Pacific Time (US & Canada)</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="dateFormat" class="form-label">Date Format</label>
+                                <select class="form-select" id="dateFormat">
+                                    <option value="MM/DD/YYYY" selected>MM/DD/YYYY</option>
+                                    <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+                                    <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+                                </select>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="card-title mb-0">Contact Information</h6>
+                    </div>
+                    <div class="card-body">
+                        <form>
+                            <div class="mb-3">
+                                <label for="supportEmail" class="form-label">Support Email</label>
+                                <input type="email" class="form-control" id="supportEmail" value="support@acmebenefits.com">
+                            </div>
+                            <div class="mb-3">
+                                <label for="supportPhone" class="form-label">Support Phone</label>
+                                <input type="tel" class="form-control" id="supportPhone" value="1-800-555-HELP">
+                            </div>
+                            <div class="mb-3">
+                                <label for="businessHours" class="form-label">Business Hours</label>
+                                <input type="text" class="form-control" id="businessHours" value="Mon-Fri 8:00 AM - 6:00 PM PST">
+                            </div>
+                            <div class="mb-3">
+                                <label for="address" class="form-label">Business Address</label>
+                                <textarea class="form-control" id="address" rows="3">123 Benefits Street
+Suite 100
+San Francisco, CA 94105</textarea>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Enrollment Settings -->
+    <div class="tab-pane fade" id="enrollment" role="tabpanel">
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="card-title mb-0">Default Enrollment Settings</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="defaultWaitingPeriod" class="form-label">Default Waiting Period</label>
+                            <select class="form-select" id="defaultWaitingPeriod">
+                                <option value="0">Immediate (First day of employment)</option>
+                                <option value="30">30 days</option>
+                                <option value="60">60 days</option>
+                                <option value="90" selected>90 days</option>
+                                <option value="first_of_month">First of month following hire date</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="enrollmentWindow" class="form-label">Enrollment Window Duration</label>
+                            <select class="form-select" id="enrollmentWindow">
+                                <option value="15">15 days</option>
+                                <option value="30" selected>30 days</option>
+                                <option value="45">45 days</option>
+                                <option value="60">60 days</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="defaultContribution" class="form-label">Default Employer Contribution (%)</label>
+                            <input type="number" class="form-control" id="defaultContribution" value="75" min="0" max="100">
+                        </div>
+
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="allowWaiveAll" checked>
+                            <label class="form-check-label" for="allowWaiveAll">
+                                Allow employees to waive all benefits
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="card-title mb-0">Life Events & Special Enrollments</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="lifeEventWindow" class="form-label">Life Event Enrollment Window</label>
+                            <select class="form-select" id="lifeEventWindow">
+                                <option value="30" selected>30 days</option>
+                                <option value="60">60 days</option>
+                                <option value="90">90 days</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Qualifying Life Events</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="qle_marriage" checked>
+                                <label class="form-check-label" for="qle_marriage">Marriage</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="qle_birth" checked>
+                                <label class="form-check-label" for="qle_birth">Birth/Adoption of Child</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="qle_divorce" checked>
+                                <label class="form-check-label" for="qle_divorce">Divorce/Legal Separation</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="qle_employment" checked>
+                                <label class="form-check-label" for="qle_employment">Spouse's Employment Change</label>
+                            </div>
+                        </div>
+
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="requireDocumentation" checked>
+                            <label class="form-check-label" for="requireDocumentation">
+                                Require documentation for life events
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notifications -->
+    <div class="tab-pane fade" id="notifications" role="tabpanel">
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="card-title mb-0">Email Notifications</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="enrollmentReminders" checked>
+                            <label class="form-check-label" for="enrollmentReminders">
+                                <strong>Enrollment Reminders</strong><br>
+                                <small class="text-muted">Send reminders during open enrollment</small>
+                            </label>
+                        </div>
+                        
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="brokerNotifications" checked>
+                            <label class="form-check-label" for="brokerNotifications">
+                                <strong>Broker Notifications</strong><br>
+                                <small class="text-muted">Notify brokers of enrollment changes</small>
+                            </label>
+                        </div>
+                        
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="welcomeEmails" checked>
+                            <label class="form-check-label" for="welcomeEmails">
+                                <strong>Welcome Emails</strong><br>
+                                <small class="text-muted">Send welcome emails to new employees</small>
+                            </label>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="fromEmail" class="form-label">From Email Address</label>
+                            <input type="email" class="form-control" id="fromEmail" value="noreply@acmebenefits.com">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="card-title mb-0">SMS & Mobile Notifications</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="smsEnabled">
+                            <label class="form-check-label" for="smsEnabled">
+                                <strong>Enable SMS Notifications</strong><br>
+                                <small class="text-muted">Send text messages for urgent updates</small>
+                            </label>
+                        </div>
+                        
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="pushNotifications">
+                            <label class="form-check-label" for="pushNotifications">
+                                <strong>Push Notifications</strong><br>
+                                <small class="text-muted">Send mobile app push notifications</small>
+                            </label>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="twilioSid" class="form-label">Twilio Account SID</label>
+                            <input type="text" class="form-control" id="twilioSid" placeholder="Enter Twilio SID">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="twilioToken" class="form-label">Twilio Auth Token</label>
+                            <input type="password" class="form-control" id="twilioToken" placeholder="Enter Auth Token">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Integrations -->
+    <div class="tab-pane fade" id="integration" role="tabpanel">
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="card-title mb-0">Payroll Integrations</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="defaultPayrollSystem" class="form-label">Default Payroll System</label>
+                            <select class="form-select" id="defaultPayrollSystem">
+                                <option value="">No default</option>
+                                <option value="adp">ADP</option>
+                                <option value="paychex" selected>Paychex</option>
+                                <option value="quickbooks">QuickBooks Payroll</option>
+                                <option value="bamboo">BambooHR</option>
+                                <option value="workday">Workday</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="payrollFrequency" class="form-label">Default Pay Frequency</label>
+                            <select class="form-select" id="payrollFrequency">
+                                <option value="weekly">Weekly</option>
+                                <option value="biweekly" selected>Bi-weekly</option>
+                                <option value="semimonthly">Semi-monthly</option>
+                                <option value="monthly">Monthly</option>
+                            </select>
+                        </div>
+
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="autoDeductions" checked>
+                            <label class="form-check-label" for="autoDeductions">
+                                Auto-calculate premium deductions
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="card-title mb-0">HRIS Integrations</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="hrisSystem" class="form-label">Primary HRIS System</label>
+                            <select class="form-select" id="hrisSystem">
+                                <option value="">None</option>
+                                <option value="bamboo">BambooHR</option>
+                                <option value="workday">Workday</option>
+                                <option value="adp_workforce">ADP Workforce Now</option>
+                                <option value="namely">Namely</option>
+                                <option value="justworks">Justworks</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="syncFrequency" class="form-label">Employee Data Sync</label>
+                            <select class="form-select" id="syncFrequency">
+                                <option value="realtime">Real-time</option>
+                                <option value="hourly">Hourly</option>
+                                <option value="daily" selected>Daily</option>
+                                <option value="weekly">Weekly</option>
+                                <option value="manual">Manual only</option>
+                            </select>
+                        </div>
+
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="autoCreateEmployees" checked>
+                            <label class="form-check-label" for="autoCreateEmployees">
+                                Auto-create employee records from HRIS
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Security -->
+    <div class="tab-pane fade" id="security" role="tabpanel">
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="card-title mb-0">Access Control</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="passwordPolicy" class="form-label">Password Policy</label>
+                            <select class="form-select" id="passwordPolicy">
+                                <option value="standard" selected>Standard (8+ chars, mixed case)</option>
+                                <option value="strong">Strong (10+ chars, special chars)</option>
+                                <option value="enterprise">Enterprise (12+ chars, complexity rules)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="sessionTimeout" class="form-label">Session Timeout (minutes)</label>
+                            <input type="number" class="form-control" id="sessionTimeout" value="60" min="15" max="480">
+                        </div>
+
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="twoFactorRequired">
+                            <label class="form-check-label" for="twoFactorRequired">
+                                Require two-factor authentication
+                            </label>
+                        </div>
+                        
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="ssoEnabled">
+                            <label class="form-check-label" for="ssoEnabled">
+                                Enable Single Sign-On (SSO)
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="card-title mb-0">Compliance & Audit</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="auditLogging" checked>
+                            <label class="form-check-label" for="auditLogging">
+                                <strong>Enable audit logging</strong><br>
+                                <small class="text-muted">Track all user actions and changes</small>
+                            </label>
+                        </div>
+                        
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="dataEncryption" checked>
+                            <label class="form-check-label" for="dataEncryption">
+                                <strong>Encrypt sensitive data</strong><br>
+                                <small class="text-muted">PII and financial information</small>
+                            </label>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="dataRetention" class="form-label">Data Retention Period</label>
+                            <select class="form-select" id="dataRetention">
+                                <option value="3">3 years</option>
+                                <option value="5">5 years</option>
+                                <option value="7" selected>7 years</option>
+                                <option value="10">10 years</option>
+                                <option value="indefinite">Indefinite</option>
+                            </select>
+                        </div>
+
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="hipaaCompliance" checked>
+                            <label class="form-check-label" for="hipaaCompliance">
+                                HIPAA compliance mode
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Save Confirmation Modal -->
+<div class="modal fade" id="saveConfirmModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Save Configuration Changes</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to save all configuration changes? Some changes may require a system restart to take effect.</p>
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Important:</strong> Changes to security settings will be applied immediately and may affect user sessions.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" onclick="confirmSave()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<style>
+.nav-tabs .nav-link {
+    color: var(--ukg-text);
+    border: none;
+    border-bottom: 2px solid transparent;
+}
+
+.nav-tabs .nav-link:hover {
+    border-bottom-color: var(--ukg-accent);
+}
+
+.nav-tabs .nav-link.active {
+    border-bottom-color: var(--ukg-primary);
+    background: none;
+    color: var(--ukg-primary);
+    font-weight: 600;
+}
+
+.card-header {
+    background-color: var(--ukg-light);
+    border-bottom: 1px solid var(--ukg-border);
+}
+
+.card-title {
+    color: var(--ukg-primary);
+    font-weight: 600;
+}
+
+.form-check-label strong {
+    color: var(--ukg-text);
+}
+</style>
+
+<script>
+function saveAllSettings() {
+    // Show confirmation modal
+    const modal = new bootstrap.Modal(document.getElementById('saveConfirmModal'));
+    modal.show();
+}
+
+function confirmSave() {
+    // Collect all form data
+    const configData = {
+        general: {
+            company_name: document.getElementById('companyName').value,
+            timezone: document.getElementById('timezone').value,
+            date_format: document.getElementById('dateFormat').value,
+            support_email: document.getElementById('supportEmail').value,
+            support_phone: document.getElementById('supportPhone').value,
+            business_hours: document.getElementById('businessHours').value,
+            address: document.getElementById('address').value
+        },
+        enrollment: {
+            default_waiting_period: document.getElementById('defaultWaitingPeriod').value,
+            enrollment_window: document.getElementById('enrollmentWindow').value,
+            default_contribution: document.getElementById('defaultContribution').value,
+            allow_waive_all: document.getElementById('allowWaiveAll').checked,
+            life_event_window: document.getElementById('lifeEventWindow').value,
+            require_documentation: document.getElementById('requireDocumentation').checked
+        },
+        notifications: {
+            enrollment_reminders: document.getElementById('enrollmentReminders').checked,
+            broker_notifications: document.getElementById('brokerNotifications').checked,
+            welcome_emails: document.getElementById('welcomeEmails').checked,
+            sms_enabled: document.getElementById('smsEnabled').checked,
+            push_notifications: document.getElementById('pushNotifications').checked,
+            from_email: document.getElementById('fromEmail').value
+        },
+        integrations: {
+            default_payroll_system: document.getElementById('defaultPayrollSystem').value,
+            payroll_frequency: document.getElementById('payrollFrequency').value,
+            auto_deductions: document.getElementById('autoDeductions').checked,
+            hris_system: document.getElementById('hrisSystem').value,
+            sync_frequency: document.getElementById('syncFrequency').value,
+            auto_create_employees: document.getElementById('autoCreateEmployees').checked
+        },
+        security: {
+            password_policy: document.getElementById('passwordPolicy').value,
+            session_timeout: document.getElementById('sessionTimeout').value,
+            two_factor_required: document.getElementById('twoFactorRequired').checked,
+            sso_enabled: document.getElementById('ssoEnabled').checked,
+            audit_logging: document.getElementById('auditLogging').checked,
+            data_encryption: document.getElementById('dataEncryption').checked,
+            data_retention: document.getElementById('dataRetention').value,
+            hipaa_compliance: document.getElementById('hipaaCompliance').checked
+        }
+    };
+    
+    console.log('Saving configuration:', configData);
+    
+    // Close modal and show success message
+    const modal = bootstrap.Modal.getInstance(document.getElementById('saveConfirmModal'));
+    modal.hide();
+    
+    // Show loading state
+    const saveBtn = document.querySelector('button[onclick="saveAllSettings()"]');
+    const originalText = saveBtn.innerHTML;
+    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving...';
+    saveBtn.disabled = true;
+    
+    // Simulate save process
+    setTimeout(() => {
+        alert('Configuration saved successfully! Some changes may require a system restart.');
+        saveBtn.innerHTML = originalText;
+        saveBtn.disabled = false;
+    }, 2000);
+}
+
+// Auto-save draft changes
+let saveTimeout;
+document.addEventListener('input', function(e) {
+    if (e.target.matches('input, select, textarea')) {
+        clearTimeout(saveTimeout);
+        saveTimeout = setTimeout(() => {
+            console.log('Auto-saving draft...');
+            // Would save draft to localStorage or API
+        }, 2000);
+    }
+});
+
+// Initialize tooltips for help text
+document.addEventListener('DOMContentLoaded', function() {
+    // Add any initialization code here
+    console.log('System configuration loaded');
+});
+</script>
+{% endblock %}

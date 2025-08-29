@@ -1,0 +1,610 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Carrier Integration Setup - HRIS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h2 mb-1">Carrier Integration Setup</h1>
+        <p class="text-muted mb-0">Configure insurance carriers and their API connections.</p>
+    </div>
+    <div>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCarrierModal">
+            <i class="fas fa-plus me-2"></i>Add Carrier
+        </button>
+    </div>
+</div>
+
+<!-- Stats -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="stats-number">{{ stats.total_carriers|default:4 }}</div>
+            <div class="stats-label">Total Carriers</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="stats-number">{{ stats.active_carriers|default:3 }}</div>
+            <div class="stats-label">Active Carriers</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="stats-number">{{ stats.integrated_carriers|default:2 }}</div>
+            <div class="stats-label">API Integrated</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="stats-number">{{ stats.pending_connections|default:1 }}</div>
+            <div class="stats-label">Pending Setup</div>
+        </div>
+    </div>
+</div>
+
+<!-- Carrier Cards -->
+<div class="row">
+    <!-- Aetna -->
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card carrier-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                    <div class="carrier-logo me-3">
+                        <i class="fas fa-hospital text-primary"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-0">Aetna</h6>
+                        <small class="text-muted">Major Medical & Dental</small>
+                    </div>
+                </div>
+                <span class="badge bg-success">Connected</span>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <small class="text-muted">API Status</small>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>Enrollment API</span>
+                        <i class="fas fa-check-circle text-success"></i>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>Claims API</span>
+                        <i class="fas fa-check-circle text-success"></i>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>Eligibility API</span>
+                        <i class="fas fa-check-circle text-success"></i>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <small class="text-muted">Last Sync</small>
+                    <div>2 hours ago</div>
+                </div>
+                
+                <div class="d-grid gap-2">
+                    <button class="btn btn-sm btn-outline-primary" onclick="configureCarrier('aetna')">
+                        <i class="fas fa-cog me-1"></i>Configure
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="testConnection('aetna')">
+                        <i class="fas fa-plug me-1"></i>Test Connection
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Anthem -->
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card carrier-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                    <div class="carrier-logo me-3">
+                        <i class="fas fa-shield-alt text-info"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-0">Anthem</h6>
+                        <small class="text-muted">Medical & Behavioral Health</small>
+                    </div>
+                </div>
+                <span class="badge bg-success">Connected</span>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <small class="text-muted">API Status</small>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>Enrollment API</span>
+                        <i class="fas fa-check-circle text-success"></i>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>Claims API</span>
+                        <i class="fas fa-times-circle text-danger"></i>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>Eligibility API</span>
+                        <i class="fas fa-check-circle text-success"></i>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <small class="text-muted">Last Sync</small>
+                    <div>1 day ago</div>
+                </div>
+                
+                <div class="d-grid gap-2">
+                    <button class="btn btn-sm btn-outline-primary" onclick="configureCarrier('anthem')">
+                        <i class="fas fa-cog me-1"></i>Configure
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="testConnection('anthem')">
+                        <i class="fas fa-plug me-1"></i>Test Connection
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- UnitedHealthcare -->
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card carrier-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                    <div class="carrier-logo me-3">
+                        <i class="fas fa-heart text-warning"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-0">UnitedHealthcare</h6>
+                        <small class="text-muted">Medical & Wellness</small>
+                    </div>
+                </div>
+                <span class="badge bg-warning">Setup Required</span>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <small class="text-muted">API Status</small>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>Enrollment API</span>
+                        <i class="fas fa-minus-circle text-muted"></i>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>Claims API</span>
+                        <i class="fas fa-minus-circle text-muted"></i>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>Eligibility API</span>
+                        <i class="fas fa-minus-circle text-muted"></i>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <small class="text-muted">Last Sync</small>
+                    <div>Never</div>
+                </div>
+                
+                <div class="d-grid gap-2">
+                    <button class="btn btn-sm btn-primary" onclick="setupCarrier('uhc')">
+                        <i class="fas fa-rocket me-1"></i>Setup Now
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary" disabled>
+                        <i class="fas fa-plug me-1"></i>Test Connection
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Kaiser Permanente -->
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card carrier-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                    <div class="carrier-logo me-3">
+                        <i class="fas fa-plus-square text-success"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-0">Kaiser Permanente</h6>
+                        <small class="text-muted">Integrated Care</small>
+                    </div>
+                </div>
+                <span class="badge bg-secondary">Inactive</span>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <small class="text-muted">API Status</small>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>Enrollment API</span>
+                        <i class="fas fa-minus-circle text-muted"></i>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>Claims API</span>
+                        <i class="fas fa-minus-circle text-muted"></i>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>Eligibility API</span>
+                        <i class="fas fa-minus-circle text-muted"></i>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <small class="text-muted">Last Sync</small>
+                    <div>Never</div>
+                </div>
+                
+                <div class="d-grid gap-2">
+                    <button class="btn btn-sm btn-outline-primary" onclick="setupCarrier('kaiser')">
+                        <i class="fas fa-rocket me-1"></i>Setup
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary" disabled>
+                        <i class="fas fa-plug me-1"></i>Test Connection
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delta Dental -->
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card carrier-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                    <div class="carrier-logo me-3">
+                        <i class="fas fa-tooth text-info"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-0">Delta Dental</h6>
+                        <small class="text-muted">Dental Insurance</small>
+                    </div>
+                </div>
+                <span class="badge bg-success">Connected</span>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <small class="text-muted">API Status</small>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>Enrollment API</span>
+                        <i class="fas fa-check-circle text-success"></i>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>Claims API</span>
+                        <i class="fas fa-check-circle text-success"></i>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>Provider API</span>
+                        <i class="fas fa-check-circle text-success"></i>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <small class="text-muted">Last Sync</small>
+                    <div>30 minutes ago</div>
+                </div>
+                
+                <div class="d-grid gap-2">
+                    <button class="btn btn-sm btn-outline-primary" onclick="configureCarrier('delta')">
+                        <i class="fas fa-cog me-1"></i>Configure
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="testConnection('delta')">
+                        <i class="fas fa-plug me-1"></i>Test Connection
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- VSP Vision -->
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card carrier-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                    <div class="carrier-logo me-3">
+                        <i class="fas fa-eye text-success"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-0">VSP Vision Care</h6>
+                        <small class="text-muted">Vision Insurance</small>
+                    </div>
+                </div>
+                <span class="badge bg-warning">Partial</span>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <small class="text-muted">API Status</small>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>Enrollment API</span>
+                        <i class="fas fa-check-circle text-success"></i>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>Claims API</span>
+                        <i class="fas fa-exclamation-circle text-warning"></i>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>Provider API</span>
+                        <i class="fas fa-times-circle text-danger"></i>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <small class="text-muted">Last Sync</small>
+                    <div>5 hours ago</div>
+                </div>
+                
+                <div class="d-grid gap-2">
+                    <button class="btn btn-sm btn-outline-primary" onclick="configureCarrier('vsp')">
+                        <i class="fas fa-cog me-1"></i>Configure
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="testConnection('vsp')">
+                        <i class="fas fa-plug me-1"></i>Test Connection
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- API Integration Status -->
+<div class="card mt-4">
+    <div class="card-header">
+        <h5 class="card-title mb-0">
+            <i class="fas fa-plug text-primary me-2"></i>
+            API Integration Status
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Carrier</th>
+                        <th>Enrollment API</th>
+                        <th>Claims API</th>
+                        <th>Eligibility API</th>
+                        <th>Last Health Check</th>
+                        <th>Response Time</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-hospital text-primary me-2"></i>
+                                Aetna
+                            </div>
+                        </td>
+                        <td><span class="badge bg-success">Active</span></td>
+                        <td><span class="badge bg-success">Active</span></td>
+                        <td><span class="badge bg-success">Active</span></td>
+                        <td>2 minutes ago</td>
+                        <td>245ms</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary" onclick="viewLogs('aetna')">
+                                <i class="fas fa-list"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-shield-alt text-info me-2"></i>
+                                Anthem
+                            </div>
+                        </td>
+                        <td><span class="badge bg-success">Active</span></td>
+                        <td><span class="badge bg-danger">Error</span></td>
+                        <td><span class="badge bg-success">Active</span></td>
+                        <td>1 hour ago</td>
+                        <td>1.2s</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary" onclick="viewLogs('anthem')">
+                                <i class="fas fa-list"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-tooth text-info me-2"></i>
+                                Delta Dental
+                            </div>
+                        </td>
+                        <td><span class="badge bg-success">Active</span></td>
+                        <td><span class="badge bg-success">Active</span></td>
+                        <td><span class="badge bg-success">Active</span></td>
+                        <td>5 minutes ago</td>
+                        <td>180ms</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary" onclick="viewLogs('delta')">
+                                <i class="fas fa-list"></i>
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Add Carrier Modal -->
+<div class="modal fade" id="addCarrierModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add New Carrier</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form>
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <label for="carrierName" class="form-label">Carrier Name *</label>
+                            <input type="text" class="form-control" id="carrierName" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="carrierCode" class="form-label">Carrier Code *</label>
+                            <input type="text" class="form-control" id="carrierCode" placeholder="AETNA" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <label for="carrierType" class="form-label">Primary Coverage Type</label>
+                            <select class="form-select" id="carrierType">
+                                <option value="medical">Medical</option>
+                                <option value="dental">Dental</option>
+                                <option value="vision">Vision</option>
+                                <option value="life">Life Insurance</option>
+                                <option value="disability">Disability</option>
+                                <option value="multiple">Multiple</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="carrierContact" class="form-label">Primary Contact</label>
+                            <input type="email" class="form-control" id="carrierContact" placeholder="rep@carrier.com">
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+                    
+                    <h6>API Configuration</h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="apiBaseUrl" class="form-label">API Base URL</label>
+                            <input type="url" class="form-control" id="apiBaseUrl" placeholder="https://api.carrier.com/v1">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="apiKey" class="form-label">API Key</label>
+                            <input type="password" class="form-control" id="apiKey" placeholder="Enter API key">
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <label for="authType" class="form-label">Authentication Type</label>
+                            <select class="form-select" id="authType">
+                                <option value="api_key">API Key</option>
+                                <option value="oauth2">OAuth 2.0</option>
+                                <option value="basic">Basic Auth</option>
+                                <option value="bearer">Bearer Token</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="timeout" class="form-label">Request Timeout (seconds)</label>
+                            <input type="number" class="form-control" id="timeout" value="30">
+                        </div>
+                    </div>
+
+                    <div class="mt-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="enableRealTime">
+                            <label class="form-check-label" for="enableRealTime">
+                                Enable real-time eligibility checking
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="enableWebhooks">
+                            <label class="form-check-label" for="enableWebhooks">
+                                Enable webhook notifications
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Carrier</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<style>
+.carrier-card {
+    transition: all 0.2s;
+    border: 1px solid var(--ukg-border);
+}
+
+.carrier-card:hover {
+    box-shadow: 0 4px 8px rgba(0,169,157,0.1);
+    border-color: var(--ukg-primary);
+}
+
+.carrier-logo {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,169,157,0.1);
+    border-radius: 8px;
+    font-size: 1.2rem;
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+    color: var(--ukg-text);
+    font-size: 0.875rem;
+}
+
+.table td {
+    vertical-align: middle;
+    border-color: var(--ukg-border);
+}
+</style>
+
+<script>
+function configureCarrier(carrierId) {
+    alert(`Opening configuration for ${carrierId.toUpperCase()}...`);
+    // Would open detailed configuration modal
+}
+
+function testConnection(carrierId) {
+    alert(`Testing connection to ${carrierId.toUpperCase()}...`);
+    // Would perform actual API test
+}
+
+function setupCarrier(carrierId) {
+    alert(`Starting setup wizard for ${carrierId.toUpperCase()}...`);
+    // Would launch carrier-specific setup wizard
+}
+
+function viewLogs(carrierId) {
+    alert(`Viewing API logs for ${carrierId.toUpperCase()}...`);
+    // Would show API call logs and health metrics
+}
+
+// Add carrier form handler
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('#addCarrierModal form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                name: document.getElementById('carrierName').value,
+                code: document.getElementById('carrierCode').value,
+                type: document.getElementById('carrierType').value,
+                contact: document.getElementById('carrierContact').value,
+                api_base_url: document.getElementById('apiBaseUrl').value,
+                api_key: document.getElementById('apiKey').value,
+                auth_type: document.getElementById('authType').value,
+                timeout: document.getElementById('timeout').value,
+                enable_realtime: document.getElementById('enableRealTime').checked,
+                enable_webhooks: document.getElementById('enableWebhooks').checked,
+            };
+            
+            console.log('Creating carrier:', formData);
+            alert('Carrier configuration saved! Integration test will begin shortly.');
+            
+            // Close modal and refresh
+            const modal = bootstrap.Modal.getInstance(document.getElementById('addCarrierModal'));
+            modal.hide();
+            
+            // In real implementation, would make API call to create carrier
+        });
+    }
+});
+</script>
+{% endblock %}

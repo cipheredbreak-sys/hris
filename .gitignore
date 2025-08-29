@@ -1,0 +1,9 @@
+.env
+claude_spec.md
+db.sqlite3
+development_tickets.md
+RBAC_IMPLEMENTATION.md
+.claude/agents/product-owner-prd-reviewer.md
+requirements.txt
+broker-console-frontend/README.md
+AUTHENTICATION.md

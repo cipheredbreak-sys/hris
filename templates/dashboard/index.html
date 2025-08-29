@@ -1,0 +1,229 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Dashboard - HRIS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h2 mb-1">Welcome back, {{ user.first_name }}!</h1>
+        <p class="text-muted mb-0">Here's what's happening with your benefits today.</p>
+    </div>
+    <div>
+        <button class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Quick Action
+        </button>
+    </div>
+</div>
+
+<!-- Stats Row -->
+<div class="row">
+    {% if user.is_superuser %}
+        <div class="col-md-3">
+            <div class="card stats-card">
+                <div class="stats-number">{{ stats.users_count|default:0 }}</div>
+                <div class="stats-label">Total Users</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stats-card">
+                <div class="stats-number">{{ stats.organizations_count|default:0 }}</div>
+                <div class="stats-label">Organizations</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stats-card">
+                <div class="stats-number">{{ stats.memberships_count|default:0 }}</div>
+                <div class="stats-label">Memberships</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stats-card">
+                <div class="stats-number">{{ stats.audit_events_count|default:0 }}</div>
+                <div class="stats-label">Audit Events</div>
+            </div>
+        </div>
+    {% elif 'Broker Admin' in user.groups.all|join:',' %}
+        <div class="col-md-4">
+            <div class="card stats-card">
+                <div class="stats-number">12</div>
+                <div class="stats-label">Active Employers</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card stats-card">
+                <div class="stats-number">348</div>
+                <div class="stats-label">Total Employees</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card stats-card">
+                <div class="stats-number">$2.4M</div>
+                <div class="stats-label">Annual Premiums</div>
+            </div>
+        </div>
+    {% elif 'Employer Admin' in user.groups.all|join:',' %}
+        <div class="col-md-4">
+            <div class="card stats-card">
+                <div class="stats-number">45</div>
+                <div class="stats-label">Active Employees</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card stats-card">
+                <div class="stats-number">89%</div>
+                <div class="stats-label">Enrollment Rate</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card stats-card">
+                <div class="stats-number">3</div>
+                <div class="stats-label">Pending Actions</div>
+            </div>
+        </div>
+    {% else %}
+        <div class="col-md-4">
+            <div class="card stats-card">
+                <div class="stats-number">4</div>
+                <div class="stats-label">Active Benefits</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card stats-card">
+                <div class="stats-number">$285</div>
+                <div class="stats-label">Monthly Premium</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card stats-card">
+                <div class="stats-number">1</div>
+                <div class="stats-label">Action Required</div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Main Content Row -->
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">
+                    {% if user.is_superuser %}
+                        Recent System Activity
+                    {% elif 'Broker Admin' in user.groups.all|join:',' %}
+                        Recent Employer Activity
+                    {% elif 'Employer Admin' in user.groups.all|join:',' %}
+                        Recent Employee Activity
+                    {% else %}
+                        My Recent Activity
+                    {% endif %}
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="list-group list-group-flush">
+                    {% if stats.recent_events %}
+                        {% for event in stats.recent_events %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center border-0 px-0">
+                            <div>
+                                <div class="fw-semibold">{{ event.event|title }}</div>
+                                <small class="text-muted">{{ event.user }} - {{ event.created_at|timesince }} ago</small>
+                            </div>
+                            <span class="badge bg-light text-dark">{{ event.event }}</span>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="list-group-item border-0 px-0">
+                            <div class="text-center py-4">
+                                <i class="fas fa-history fa-3x text-muted mb-3"></i>
+                                <p class="text-muted mb-0">No recent activity to show</p>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    {% if user.is_superuser %}
+                        <a href="/admin/" class="btn btn-outline-primary">
+                            <i class="fas fa-cog me-2"></i>Admin Panel
+                        </a>
+                        <a href="/swagger/" class="btn btn-outline-primary">
+                            <i class="fas fa-code me-2"></i>API Documentation
+                        </a>
+                        <a href="{% url 'system_config' %}" class="btn btn-outline-warning">
+                            <i class="fas fa-cogs me-2"></i>System Config
+                        </a>
+                    {% elif 'Broker Admin' in user.groups.all|join:',' %}
+                        <a href="{% url 'onboarding_wizard' %}" class="btn btn-primary">
+                            <i class="fas fa-rocket me-2"></i>Onboard New Company
+                        </a>
+                        <a href="{% url 'employers' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-building me-2"></i>Manage Employers
+                        </a>
+                        <a href="{% url 'reports' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-chart-bar me-2"></i>Generate Reports
+                        </a>
+                        <a href="{% url 'carrier_setup' %}" class="btn btn-outline-success">
+                            <i class="fas fa-plug me-2"></i>Carrier Setup
+                        </a>
+                    {% elif 'Employer Admin' in user.groups.all|join:',' %}
+                        <button class="btn btn-outline-primary">
+                            <i class="fas fa-user-plus me-2"></i>Add Employee
+                        </button>
+                        <button class="btn btn-outline-primary">
+                            <i class="fas fa-upload me-2"></i>Import Employees
+                        </button>
+                        <button class="btn btn-outline-primary">
+                            <i class="fas fa-chart-bar me-2"></i>View Reports
+                        </button>
+                    {% else %}
+                        <button class="btn btn-outline-primary">
+                            <i class="fas fa-heart me-2"></i>View My Benefits
+                        </button>
+                        <button class="btn btn-outline-primary">
+                            <i class="fas fa-edit me-2"></i>Update Profile
+                        </button>
+                        <button class="btn btn-outline-primary">
+                            <i class="fas fa-download me-2"></i>Download Forms
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        {% if 'Broker Admin' in user.groups.all|join:',' or 'Employer Admin' in user.groups.all|join:',' %}
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">Upcoming Renewals</h5>
+            </div>
+            <div class="card-body">
+                <div class="list-group list-group-flush">
+                    <div class="list-group-item d-flex justify-content-between align-items-center border-0 px-0">
+                        <div>
+                            <div class="fw-semibold">TechCorp Inc.</div>
+                            <small class="text-muted">Medical Plan Renewal</small>
+                        </div>
+                        <span class="badge bg-warning text-dark">30 days</span>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center border-0 px-0">
+                        <div>
+                            <div class="fw-semibold">StartupXYZ</div>
+                            <small class="text-muted">Dental Plan Renewal</small>
+                        </div>
+                        <span class="badge bg-success">45 days</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

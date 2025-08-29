@@ -1,0 +1,133 @@
+{% extends "account/base.html" %}
+{% load socialaccount %}
+
+{% block title %}Sign In - HRIS{% endblock %}
+
+{% block content %}
+<h4 class="text-center mb-4">Sign In</h4>
+
+<!-- Social Login Buttons -->
+<div class="d-grid gap-2 mb-3">
+    {% comment %} Demo social buttons {% endcomment %}
+    <button type="button" class="social-btn google" onclick="handleSocialLogin('google')">
+        <i class="fab fa-google"></i>
+        Continue with Google
+    </button>
+    
+    <button type="button" class="social-btn microsoft" onclick="handleSocialLogin('microsoft')">
+        <i class="fab fa-microsoft"></i>
+        Continue with Microsoft
+    </button>
+</div>
+
+<script>
+async function handleSocialLogin(provider) {
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    
+    // Show loading state
+    btn.classList.add('btn-loading');
+    btn.disabled = true;
+    
+    try {
+        const response = await fetch('/api/auth/social/login/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: JSON.stringify({ provider })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            // Store tokens and redirect
+            localStorage.setItem('access_token', data.access);
+            localStorage.setItem('refresh_token', data.refresh);
+            
+            // Show success message
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-success alert-dismissible fade show';
+            alertDiv.innerHTML = `
+                <i class="fas fa-check-circle"></i>
+                Successfully signed in with ${provider.charAt(0).toUpperCase() + provider.slice(1)}! 
+                <em>(Demo Mode)</em>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            const container = document.querySelector('.auth-container');
+            container.insertBefore(alertDiv, container.querySelector('h4'));
+            
+            // Redirect after delay
+            setTimeout(() => {
+                window.location.href = '/api/dashboard/stats/';
+            }, 2000);
+        } else {
+            throw new Error(data.error || 'Social login failed');
+        }
+    } catch (error) {
+        console.error('Social login error:', error);
+        
+        // Show error message
+        const alertDiv = document.createElement('div');
+        alertDiv.className = 'alert alert-danger alert-dismissible fade show';
+        alertDiv.innerHTML = `
+            <i class="fas fa-exclamation-circle"></i>
+            ${error.message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        const container = document.querySelector('.auth-container');
+        container.insertBefore(alertDiv, container.querySelector('h4'));
+    } finally {
+        // Restore button state
+        btn.classList.remove('btn-loading');
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }
+}
+</script>
+
+<div class="divider">
+    <span>or</span>
+</div>
+
+<!-- Email/Password Login Form -->
+<form method="post" action="{% url 'account_login' %}">
+    {% csrf_token %}
+    
+    <div class="mb-3">
+        <label for="id_login" class="form-label">Email</label>
+        <input type="email" class="form-control" id="id_login" name="login" required>
+    </div>
+    
+    <div class="mb-3">
+        <label for="id_password" class="form-label">Password</label>
+        <input type="password" class="form-control" id="id_password" name="password" required>
+    </div>
+    
+    <div class="mb-3 form-check">
+        <input type="checkbox" class="form-check-input" id="id_remember" name="remember">
+        <label class="form-check-label" for="id_remember">
+            Remember me
+        </label>
+    </div>
+    
+    <div class="d-grid">
+        <button type="submit" class="btn btn-primary">Sign In</button>
+    </div>
+</form>
+
+<div class="text-center mt-3">
+    <p class="mb-1">
+        <a href="{% url 'account_reset_password' %}" class="text-decoration-none">
+            Forgot your password?
+        </a>
+    </p>
+    <p>
+        Don't have an account? 
+        <a href="{% url 'account_signup' %}" class="text-decoration-none">Sign up</a>
+    </p>
+</div>
+{% endblock %}

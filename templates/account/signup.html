@@ -1,0 +1,148 @@
+{% extends "account/base.html" %}
+{% load socialaccount %}
+
+{% block title %}Sign Up - HRIS{% endblock %}
+
+{% block content %}
+<h4 class="text-center mb-4">Create Account</h4>
+
+<!-- Social Login Buttons -->
+<div class="d-grid gap-2 mb-3">
+    {% comment %} Demo social buttons {% endcomment %}
+    <button type="button" class="social-btn google" onclick="handleSocialLogin('google')">
+        <i class="fab fa-google"></i>
+        Sign up with Google
+    </button>
+    
+    <button type="button" class="social-btn microsoft" onclick="handleSocialLogin('microsoft')">
+        <i class="fab fa-microsoft"></i>
+        Sign up with Microsoft
+    </button>
+</div>
+
+<script>
+async function handleSocialLogin(provider) {
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    
+    // Show loading state
+    btn.classList.add('btn-loading');
+    btn.disabled = true;
+    
+    try {
+        const response = await fetch('/api/auth/social/login/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: JSON.stringify({ provider })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            // Store tokens and redirect
+            localStorage.setItem('access_token', data.access);
+            localStorage.setItem('refresh_token', data.refresh);
+            
+            // Show success message
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-success alert-dismissible fade show';
+            alertDiv.innerHTML = `
+                <i class="fas fa-check-circle"></i>
+                Successfully signed up with ${provider.charAt(0).toUpperCase() + provider.slice(1)}! 
+                <em>(Demo Mode)</em>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            const container = document.querySelector('.auth-container');
+            container.insertBefore(alertDiv, container.querySelector('h4'));
+            
+            // Redirect after delay
+            setTimeout(() => {
+                window.location.href = '/api/dashboard/stats/';
+            }, 2000);
+        } else {
+            throw new Error(data.error || 'Social signup failed');
+        }
+    } catch (error) {
+        console.error('Social signup error:', error);
+        
+        // Show error message
+        const alertDiv = document.createElement('div');
+        alertDiv.className = 'alert alert-danger alert-dismissible fade show';
+        alertDiv.innerHTML = `
+            <i class="fas fa-exclamation-circle"></i>
+            ${error.message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        const container = document.querySelector('.auth-container');
+        container.insertBefore(alertDiv, container.querySelector('h4'));
+    } finally {
+        // Restore button state
+        btn.classList.remove('btn-loading');
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }
+}
+</script>
+
+<div class="divider">
+    <span>or</span>
+</div>
+
+<!-- Email/Password Signup Form -->
+<form method="post" action="{% url 'account_signup' %}">
+    {% csrf_token %}
+    
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label for="id_first_name" class="form-label">First Name</label>
+            <input type="text" class="form-control" id="id_first_name" name="first_name" required>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label for="id_last_name" class="form-label">Last Name</label>
+            <input type="text" class="form-control" id="id_last_name" name="last_name" required>
+        </div>
+    </div>
+    
+    <div class="mb-3">
+        <label for="id_email" class="form-label">Email</label>
+        <input type="email" class="form-control" id="id_email" name="email" required>
+    </div>
+    
+    <div class="mb-3">
+        <label for="id_password1" class="form-label">Password</label>
+        <input type="password" class="form-control" id="id_password1" name="password1" required>
+        <small class="form-text text-muted">
+            Must be at least 12 characters long.
+        </small>
+    </div>
+    
+    <div class="mb-3">
+        <label for="id_password2" class="form-label">Confirm Password</label>
+        <input type="password" class="form-control" id="id_password2" name="password2" required>
+    </div>
+    
+    <div class="d-grid">
+        <button type="submit" class="btn btn-primary">Create Account</button>
+    </div>
+</form>
+
+<div class="text-center mt-3">
+    <p>
+        Already have an account? 
+        <a href="{% url 'account_login' %}" class="text-decoration-none">Sign in</a>
+    </p>
+</div>
+
+<div class="alert alert-success mt-3">
+    <small>
+        <i class="fas fa-check-circle"></i>
+        <strong>Ready to go!</strong> 
+        You can sign in immediately after creating your account.
+    </small>
+</div>
+{% endblock %}

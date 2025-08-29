@@ -1,0 +1,309 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Benefits - HRIS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h2 mb-1">Benefits & Plans</h1>
+        <p class="text-muted mb-0">Manage insurance plans and benefit offerings.</p>
+    </div>
+    <div>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addPlanModal">
+            <i class="fas fa-plus me-2"></i>Add Plan
+        </button>
+    </div>
+</div>
+
+<!-- Stats Row -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="stats-number">{{ stats.total_plans }}</div>
+            <div class="stats-label">Total Plans</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="stats-number">{{ stats.medical_plans }}</div>
+            <div class="stats-label">Medical Plans</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="stats-number">{{ stats.dental_plans }}</div>
+            <div class="stats-label">Dental Plans</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="stats-number">{{ stats.vision_plans }}</div>
+            <div class="stats-label">Vision Plans</div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row align-items-end">
+            <div class="col-md-4">
+                <label for="planTypeFilter" class="form-label">Plan Type</label>
+                <select class="form-select" id="planTypeFilter">
+                    <option value="">All Plan Types</option>
+                    <option value="medical" {% if plan_type_filter == 'medical' %}selected{% endif %}>Medical</option>
+                    <option value="dental" {% if plan_type_filter == 'dental' %}selected{% endif %}>Dental</option>
+                    <option value="vision" {% if plan_type_filter == 'vision' %}selected{% endif %}>Vision</option>
+                    <option value="life" {% if plan_type_filter == 'life' %}selected{% endif %}>Life Insurance</option>
+                    <option value="disability" {% if plan_type_filter == 'disability' %}selected{% endif %}>Disability</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label for="carrierFilter" class="form-label">Carrier</label>
+                <select class="form-select" id="carrierFilter">
+                    <option value="">All Carriers</option>
+                    {% for carrier in carriers %}
+                    <option value="{{ carrier.id }}" {% if carrier_filter == carrier.id|stringformat:"s" %}selected{% endif %}>{{ carrier.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-outline-primary w-100" onclick="filterPlans()">
+                    <i class="fas fa-filter me-2"></i>Filter
+                </button>
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-outline-secondary w-100" onclick="clearFilters()">
+                    <i class="fas fa-times me-2"></i>Clear
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Plans Table -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">Available Plans</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Plan Name</th>
+                        <th>Type</th>
+                        <th>Carrier</th>
+                        <th>Network</th>
+                        <th>Deductible</th>
+                        <th>Premium</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for plan in plans %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="plan-icon me-3">
+                                    {% if plan.plan_type == 'medical' %}
+                                        <i class="fas fa-user-md text-primary"></i>
+                                    {% elif plan.plan_type == 'dental' %}
+                                        <i class="fas fa-tooth text-info"></i>
+                                    {% elif plan.plan_type == 'vision' %}
+                                        <i class="fas fa-eye text-success"></i>
+                                    {% else %}
+                                        <i class="fas fa-shield-alt text-warning"></i>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <div class="fw-semibold">{{ plan.name }}</div>
+                                    <small class="text-muted">{{ plan.description|truncatechars:50 }}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-dark">{{ plan.get_plan_type_display }}</span>
+                        </td>
+                        <td>{{ plan.carrier.name }}</td>
+                        <td>{{ plan.network_type|default:"—" }}</td>
+                        <td>
+                            {% if plan.individual_deductible %}
+                                ${{ plan.individual_deductible|floatformat:0 }}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if plan.employee_premium %}
+                                ${{ plan.employee_premium|floatformat:2 }}/mo
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if plan.is_active %}
+                                <span class="badge bg-success">Active</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="#" class="btn btn-outline-primary" title="View Details">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="#" class="btn btn-outline-secondary" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="#" class="btn btn-outline-success" title="Enrollments">
+                                    <i class="fas fa-users"></i>
+                                </a>
+                                <div class="dropdown">
+                                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                        <i class="fas fa-ellipsis-h"></i>
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="#"><i class="fas fa-copy me-2"></i>Duplicate Plan</a></li>
+                                        <li><a class="dropdown-item" href="#"><i class="fas fa-file-export me-2"></i>Export Details</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item text-danger" href="#"><i class="fas fa-archive me-2"></i>Archive Plan</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center py-5">
+                            <i class="fas fa-heart fa-3x text-muted mb-3"></i>
+                            <p class="text-muted mb-0">No plans found</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Add Plan Modal -->
+<div class="modal fade" id="addPlanModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add New Plan</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form>
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <label for="planName" class="form-label">Plan Name *</label>
+                            <input type="text" class="form-control" id="planName" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="planType" class="form-label">Plan Type *</label>
+                            <select class="form-select" id="planType" required>
+                                <option value="">Select Type</option>
+                                <option value="medical">Medical</option>
+                                <option value="dental">Dental</option>
+                                <option value="vision">Vision</option>
+                                <option value="life">Life Insurance</option>
+                                <option value="disability">Disability</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <label for="planCarrier" class="form-label">Carrier *</label>
+                            <select class="form-select" id="planCarrier" required>
+                                <option value="">Select Carrier</option>
+                                {% for carrier in carriers %}
+                                <option value="{{ carrier.id }}">{{ carrier.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="networkType" class="form-label">Network Type</label>
+                            <select class="form-select" id="networkType">
+                                <option value="">Select Network</option>
+                                <option value="HMO">HMO</option>
+                                <option value="PPO">PPO</option>
+                                <option value="EPO">EPO</option>
+                                <option value="POS">POS</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <label for="employeePremium" class="form-label">Employee Premium</label>
+                            <input type="number" class="form-control" id="employeePremium" step="0.01" placeholder="0.00">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="individualDeductible" class="form-label">Individual Deductible</label>
+                            <input type="number" class="form-control" id="individualDeductible" step="100" placeholder="0">
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <label for="planDescription" class="form-label">Description</label>
+                        <textarea class="form-control" id="planDescription" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Plan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<style>
+.plan-icon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+    color: var(--ukg-text);
+    font-size: 0.875rem;
+}
+
+.table td {
+    vertical-align: middle;
+    border-color: var(--ukg-border);
+}
+
+.btn-group-sm .btn {
+    font-size: 0.75rem;
+}
+</style>
+
+<script>
+function filterPlans() {
+    const planTypeFilter = document.getElementById('planTypeFilter').value;
+    const carrierFilter = document.getElementById('carrierFilter').value;
+    
+    const params = new URLSearchParams();
+    if (planTypeFilter) params.append('plan_type', planTypeFilter);
+    if (carrierFilter) params.append('carrier', carrierFilter);
+    
+    window.location.href = '{% url "benefits" %}?' + params.toString();
+}
+
+function clearFilters() {
+    window.location.href = '{% url "benefits" %}';
+}
+</script>
+{% endblock %}

@@ -1,0 +1,332 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Employers - HRIS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h2 mb-1">Employers</h1>
+        <p class="text-muted mb-0">Manage your client companies and their benefit plans.</p>
+    </div>
+    <div>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addEmployerModal">
+            <i class="fas fa-plus me-2"></i>Add Employer
+        </button>
+    </div>
+</div>
+
+<!-- Stats Row -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="stats-number">{{ stats.total_employers }}</div>
+            <div class="stats-label">Total Employers</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="stats-number">{{ stats.active_employers }}</div>
+            <div class="stats-label">Active Employers</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="stats-number">{{ stats.total_employees }}</div>
+            <div class="stats-label">Total Employees</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="stats-number">{{ stats.pending_renewals }}</div>
+            <div class="stats-label">Pending Renewals</div>
+        </div>
+    </div>
+</div>
+
+<!-- Search and Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row align-items-end">
+            <div class="col-md-4">
+                <label for="searchEmployer" class="form-label">Search Employers</label>
+                <input type="text" class="form-control" id="searchEmployer" placeholder="Search by name or EIN..." value="{{ search_query }}">
+            </div>
+            <div class="col-md-3">
+                <label for="statusFilter" class="form-label">Status</label>
+                <select class="form-select" id="statusFilter">
+                    <option value="">All Statuses</option>
+                    <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+                    <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+                    <option value="terminated" {% if status_filter == 'terminated' %}selected{% endif %}>Terminated</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="sizeFilter" class="form-label">Company Size</label>
+                <select class="form-select" id="sizeFilter">
+                    <option value="">All Sizes</option>
+                    <option value="1-10">1-10 employees</option>
+                    <option value="11-25">11-25 employees</option>
+                    <option value="26-50">26-50 employees</option>
+                    <option value="51-100">51-100 employees</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-outline-primary w-100" onclick="filterEmployers()">
+                    <i class="fas fa-search me-2"></i>Filter
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Employers Table -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">Employer Directory</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Company Name</th>
+                        <th>EIN</th>
+                        <th>Employees</th>
+                        <th>Effective Date</th>
+                        <th>Status</th>
+                        <th>Contact</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for employer in employers %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-circle me-3">
+                                    <i class="fas fa-building"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-semibold">{{ employer.name }}</div>
+                                    <small class="text-muted">{{ employer.created_at|date:"M d, Y" }}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="font-monospace">{{ employer.ein }}</span>
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-dark">{{ employer.size }} employees</span>
+                        </td>
+                        <td>{{ employer.effective_date|date:"M d, Y" }}</td>
+                        <td>
+                            {% if employer.status == 'active' %}
+                                <span class="badge bg-success">Active</span>
+                            {% elif employer.status == 'pending' %}
+                                <span class="badge bg-warning">Pending</span>
+                            {% else %}
+                                <span class="badge bg-danger">Terminated</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if employer.contact_name %}
+                                <div>{{ employer.contact_name }}</div>
+                                <small class="text-muted">{{ employer.contact_email }}</small>
+                            {% else %}
+                                <span class="text-muted">No contact</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="#" class="btn btn-outline-primary" title="View Details">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="#" class="btn btn-outline-secondary" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="#" class="btn btn-outline-success" title="Employees">
+                                    <i class="fas fa-users"></i>
+                                </a>
+                                <div class="dropdown">
+                                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                        <i class="fas fa-ellipsis-h"></i>
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="#"><i class="fas fa-file-export me-2"></i>Export Data</a></li>
+                                        <li><a class="dropdown-item" href="#"><i class="fas fa-chart-bar me-2"></i>View Reports</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item text-danger" href="#"><i class="fas fa-trash me-2"></i>Terminate</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5">
+                            <i class="fas fa-building fa-3x text-muted mb-3"></i>
+                            <p class="text-muted mb-0">No employers found</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Add Employer Modal -->
+<div class="modal fade" id="addEmployerModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add New Employer</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form>
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <label for="companyName" class="form-label">Company Name *</label>
+                            <input type="text" class="form-control" id="companyName" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="ein" class="form-label">EIN *</label>
+                            <input type="text" class="form-control" id="ein" placeholder="XX-XXXXXXX" required>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <label for="effectiveDate" class="form-label">Effective Date *</label>
+                            <input type="date" class="form-control" id="effectiveDate" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="employeeCount" class="form-label">Number of Employees *</label>
+                            <input type="number" class="form-control" id="employeeCount" min="1" max="100" required>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <label for="contactName" class="form-label">Contact Name</label>
+                            <input type="text" class="form-control" id="contactName">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="contactEmail" class="form-label">Contact Email</label>
+                            <input type="email" class="form-control" id="contactEmail">
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <label for="address" class="form-label">Address</label>
+                        <textarea class="form-control" id="address" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Employer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<style>
+.avatar-circle {
+    width: 40px;
+    height: 40px;
+    background: var(--ukg-accent);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ukg-primary);
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+    color: var(--ukg-text);
+    font-size: 0.875rem;
+}
+
+.table td {
+    vertical-align: middle;
+    border-color: var(--ukg-border);
+}
+
+.btn-group-sm .btn {
+    font-size: 0.75rem;
+}
+</style>
+
+<script>
+function filterEmployers() {
+    const searchQuery = document.getElementById('searchEmployer').value;
+    const statusFilter = document.getElementById('statusFilter').value;
+    const sizeFilter = document.getElementById('sizeFilter').value;
+    
+    const params = new URLSearchParams();
+    if (searchQuery) params.append('search', searchQuery);
+    if (statusFilter) params.append('status', statusFilter);
+    if (sizeFilter) params.append('size', sizeFilter);
+    
+    window.location.href = '{% url "employers" %}?' + params.toString();
+}
+
+// Allow Enter key to trigger search
+document.getElementById('searchEmployer').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        filterEmployers();
+    }
+});
+
+// Add Employer Form Handler
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('#addEmployerModal form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData();
+            formData.append('name', document.getElementById('companyName').value);
+            formData.append('ein', document.getElementById('ein').value);
+            formData.append('effective_date', document.getElementById('effectiveDate').value);
+            formData.append('size', document.getElementById('employeeCount').value);
+            formData.append('contact_name', document.getElementById('contactName').value);
+            formData.append('contact_email', document.getElementById('contactEmail').value);
+            formData.append('address', document.getElementById('address').value);
+            
+            // Get CSRF token
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+                            document.querySelector('meta[name="csrf-token"]')?.content;
+            
+            fetch('/api/api/employers/', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'Authorization': 'Bearer ' + localStorage.getItem('access_token')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.id) {
+                    // Success - close modal and refresh page
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('addEmployerModal'));
+                    modal.hide();
+                    location.reload();
+                } else {
+                    alert('Error creating employer: ' + (data.error || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error creating employer. Please try again.');
+            });
+        });
+    }
+});
+</script>
+{% endblock %}

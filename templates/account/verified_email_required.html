@@ -1,0 +1,43 @@
+{% extends "account/base.html" %}
+
+{% block title %}Email Verification Required - HRIS{% endblock %}
+
+{% block content %}
+<div class="text-center">
+    <i class="fas fa-envelope-open fa-3x text-warning mb-3"></i>
+    <h4>Email Verification Required</h4>
+</div>
+
+<div class="alert alert-info">
+    <h6><i class="fas fa-info-circle"></i> Action Required</h6>
+    <p class="mb-0">
+        To complete your account setup and sign in, please check your email 
+        and click the verification link we sent you.
+    </p>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <h6 class="card-title">What to do next:</h6>
+        <ol class="mb-0">
+            <li>Check your email inbox (including spam/junk folder)</li>
+            <li>Click the verification link in the email</li>
+            <li>Return here to sign in</li>
+        </ol>
+    </div>
+</div>
+
+<div class="text-center mt-3">
+    <p>
+        Didn't receive the email? 
+        <a href="{% url 'account_email' %}" class="text-decoration-none">
+            Resend verification email
+        </a>
+    </p>
+    <p>
+        <a href="{% url 'account_login' %}" class="btn btn-outline-primary">
+            Back to Sign In
+        </a>
+    </p>
+</div>
+{% endblock %}

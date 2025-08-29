@@ -1,0 +1,397 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Exports - HRIS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h2 mb-1">Data Exports</h1>
+        <p class="text-muted mb-0">Export data for carriers, payroll systems, and reporting.</p>
+    </div>
+    <div>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newExportModal">
+            <i class="fas fa-plus me-2"></i>New Export
+        </button>
+    </div>
+</div>
+
+<!-- Stats -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="stats-number">{{ exports.count }}</div>
+            <div class="stats-label">Total Exports</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="stats-number">8</div>
+            <div class="stats-label">Scheduled Exports</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="stats-number">3</div>
+            <div class="stats-label">Active Templates</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="stats-number">156 MB</div>
+            <div class="stats-label">Data Exported</div>
+        </div>
+    </div>
+</div>
+
+<!-- Export Templates -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-building text-primary me-2"></i>
+                    Carrier Exports
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-3">Export enrollment data for insurance carriers</p>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-primary btn-sm" onclick="startExport('carrier', 'enrollment')">
+                        <i class="fas fa-file-export me-2"></i>Enrollment File
+                    </button>
+                    <button class="btn btn-outline-primary btn-sm" onclick="startExport('carrier', 'census')">
+                        <i class="fas fa-users me-2"></i>Employee Census
+                    </button>
+                    <button class="btn btn-outline-primary btn-sm" onclick="startExport('carrier', 'changes')">
+                        <i class="fas fa-edit me-2"></i>Enrollment Changes
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-calculator text-success me-2"></i>
+                    Payroll Exports
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-3">Export data for payroll deduction processing</p>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-success btn-sm" onclick="startExport('payroll', 'deductions')">
+                        <i class="fas fa-dollar-sign me-2"></i>Deduction File
+                    </button>
+                    <button class="btn btn-outline-success btn-sm" onclick="startExport('payroll', 'new_hires')">
+                        <i class="fas fa-user-plus me-2"></i>New Hires
+                    </button>
+                    <button class="btn btn-outline-success btn-sm" onclick="startExport('payroll', 'terminations')">
+                        <i class="fas fa-user-times me-2"></i>Terminations
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-bar text-info me-2"></i>
+                    Analytics Exports
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-3">Export data for reporting and analysis</p>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-info btn-sm" onclick="startExport('analytics', 'utilization')">
+                        <i class="fas fa-chart-line me-2"></i>Utilization Report
+                    </button>
+                    <button class="btn btn-outline-info btn-sm" onclick="startExport('analytics', 'demographics')">
+                        <i class="fas fa-users me-2"></i>Demographics
+                    </button>
+                    <button class="btn btn-outline-info btn-sm" onclick="startExport('analytics', 'costs')">
+                        <i class="fas fa-money-bill-wave me-2"></i>Cost Analysis
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Export History -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">Export History</h5>
+        <div class="btn-group btn-group-sm">
+            <button class="btn btn-outline-secondary" onclick="refreshExports()">
+                <i class="fas fa-sync"></i>
+            </button>
+            <button class="btn btn-outline-secondary" onclick="filterExports()">
+                <i class="fas fa-filter"></i>
+            </button>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Export Name</th>
+                        <th>Type</th>
+                        <th>Employer</th>
+                        <th>Carrier</th>
+                        <th>Created</th>
+                        <th>Status</th>
+                        <th>Records</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for export in exports %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                {% if export.export_type == 'enrollment' %}
+                                    <i class="fas fa-file-csv text-primary me-3"></i>
+                                {% elif export.export_type == 'payroll' %}
+                                    <i class="fas fa-file-excel text-success me-3"></i>
+                                {% else %}
+                                    <i class="fas fa-file-alt text-info me-3"></i>
+                                {% endif %}
+                                <div>
+                                    <div class="fw-semibold">{{ export.name }}</div>
+                                    <small class="text-muted">{{ export.description|default:"—" }}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-dark">{{ export.get_export_type_display|default:export.export_type|capfirst }}</span>
+                        </td>
+                        <td>
+                            {% if export.employer %}
+                                {{ export.employer.name }}
+                            {% else %}
+                                <span class="text-muted">All Employers</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if export.carrier %}
+                                {{ export.carrier.name }}
+                            {% else %}
+                                <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ export.created_at|date:"M d, Y H:i" }}</td>
+                        <td>
+                            {% if export.status == 'completed' %}
+                                <span class="badge bg-success">Completed</span>
+                            {% elif export.status == 'processing' %}
+                                <span class="badge bg-warning">Processing</span>
+                            {% elif export.status == 'failed' %}
+                                <span class="badge bg-danger">Failed</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ export.status|capfirst }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if export.record_count %}
+                                {{ export.record_count|floatformat:0 }}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                {% if export.status == 'completed' and export.file_path %}
+                                <button class="btn btn-outline-primary" onclick="downloadExport('{{ export.id }}')" title="Download">
+                                    <i class="fas fa-download"></i>
+                                </button>
+                                {% endif %}
+                                <button class="btn btn-outline-secondary" onclick="viewExportDetails('{{ export.id }}')" title="Details">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                {% if export.status == 'completed' %}
+                                <button class="btn btn-outline-success" onclick="duplicateExport('{{ export.id }}')" title="Duplicate">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                                {% endif %}
+                                <div class="dropdown">
+                                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                        <i class="fas fa-ellipsis-h"></i>
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="#" onclick="scheduleExport('{{ export.id }}')"><i class="fas fa-clock me-2"></i>Schedule</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="shareExport('{{ export.id }}')"><i class="fas fa-share me-2"></i>Share</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item text-danger" href="#" onclick="deleteExport('{{ export.id }}')"><i class="fas fa-trash me-2"></i>Delete</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center py-5">
+                            <i class="fas fa-file-export fa-3x text-muted mb-3"></i>
+                            <p class="text-muted mb-0">No exports found</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- New Export Modal -->
+<div class="modal fade" id="newExportModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create New Export</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form>
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <label for="exportName" class="form-label">Export Name *</label>
+                            <input type="text" class="form-control" id="exportName" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="exportType" class="form-label">Export Type *</label>
+                            <select class="form-select" id="exportType" required>
+                                <option value="">Select Type</option>
+                                <option value="enrollment">Enrollment</option>
+                                <option value="payroll">Payroll</option>
+                                <option value="census">Census</option>
+                                <option value="analytics">Analytics</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <label for="exportEmployer" class="form-label">Employer</label>
+                            <select class="form-select" id="exportEmployer">
+                                <option value="">All Employers</option>
+                                <!-- Employers would be populated dynamically -->
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="exportCarrier" class="form-label">Carrier</label>
+                            <select class="form-select" id="exportCarrier">
+                                <option value="">All Carriers</option>
+                                <!-- Carriers would be populated dynamically -->
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <label for="exportFormat" class="form-label">Format *</label>
+                            <select class="form-select" id="exportFormat" required>
+                                <option value="csv">CSV</option>
+                                <option value="xlsx">Excel (XLSX)</option>
+                                <option value="json">JSON</option>
+                                <option value="xml">XML</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="exportSchedule" class="form-label">Schedule</label>
+                            <select class="form-select" id="exportSchedule">
+                                <option value="once">Run Once</option>
+                                <option value="daily">Daily</option>
+                                <option value="weekly">Weekly</option>
+                                <option value="monthly">Monthly</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <label for="exportDescription" class="form-label">Description</label>
+                        <textarea class="form-control" id="exportDescription" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create Export</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<style>
+.table th {
+    border-top: none;
+    font-weight: 600;
+    color: var(--ukg-text);
+    font-size: 0.875rem;
+}
+
+.table td {
+    vertical-align: middle;
+    border-color: var(--ukg-border);
+}
+
+.btn-group-sm .btn {
+    font-size: 0.75rem;
+}
+</style>
+
+<script>
+function startExport(category, type) {
+    const exportName = `${category.charAt(0).toUpperCase() + category.slice(1)} ${type.charAt(0).toUpperCase() + type.slice(1)} Export`;
+    alert(`Starting ${exportName}...`);
+    
+    // In real implementation, this would trigger the export process
+    setTimeout(() => {
+        alert(`${exportName} completed successfully!`);
+    }, 2000);
+}
+
+function downloadExport(exportId) {
+    alert(`Downloading export ${exportId}...`);
+    // In real implementation, this would trigger file download
+}
+
+function viewExportDetails(exportId) {
+    alert(`Viewing details for export ${exportId}`);
+    // Would open a modal with export details
+}
+
+function duplicateExport(exportId) {
+    alert(`Duplicating export ${exportId}...`);
+    // Would create a copy of the export configuration
+}
+
+function scheduleExport(exportId) {
+    alert(`Opening scheduler for export ${exportId}`);
+    // Would open scheduling modal
+}
+
+function shareExport(exportId) {
+    alert(`Sharing export ${exportId}...`);
+    // Would open sharing options
+}
+
+function deleteExport(exportId) {
+    if (confirm('Are you sure you want to delete this export?')) {
+        alert(`Deleting export ${exportId}...`);
+        // Would delete the export
+    }
+}
+
+function refreshExports() {
+    location.reload();
+}
+
+function filterExports() {
+    alert('Filter options would open here');
+}
+</script>
+{% endblock %}

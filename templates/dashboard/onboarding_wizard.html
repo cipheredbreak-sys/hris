@@ -1,0 +1,1062 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Company Onboarding Wizard - HRIS{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <!-- Wizard Progress Header -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 class="mb-0">Company Onboarding Wizard</h2>
+                <button class="btn btn-outline-secondary" onclick="saveAndExit()">
+                    <i class="fas fa-save me-2"></i>Save & Exit
+                </button>
+            </div>
+            
+            <!-- Progress Steps -->
+            <div class="wizard-progress">
+                <div class="wizard-steps">
+                    <div class="wizard-step active" data-step="1">
+                        <div class="step-number">1</div>
+                        <div class="step-title">Company Info</div>
+                    </div>
+                    <div class="wizard-step" data-step="2">
+                        <div class="step-number">2</div>
+                        <div class="step-title">Plan Selection</div>
+                    </div>
+                    <div class="wizard-step" data-step="3">
+                        <div class="step-number">3</div>
+                        <div class="step-title">Employees</div>
+                    </div>
+                    <div class="wizard-step" data-step="4">
+                        <div class="step-number">4</div>
+                        <div class="step-title">Configuration</div>
+                    </div>
+                    <div class="wizard-step" data-step="5">
+                        <div class="step-number">5</div>
+                        <div class="step-title">Review</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Wizard Content -->
+    <div class="row">
+        <div class="col-12">
+            <!-- Step 1: Company Information -->
+            <div class="wizard-content" id="step-1">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-building text-primary me-2"></i>
+                            Company Information
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="companyForm">
+                            {% csrf_token %}
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <label for="companyName" class="form-label">Company Name *</label>
+                                    <input type="text" class="form-control" id="companyName" required>
+                                    <div class="form-text">Legal business name as it appears on tax documents</div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="ein" class="form-label">Federal EIN *</label>
+                                    <input type="text" class="form-control" id="ein" placeholder="XX-XXXXXXX" pattern="[0-9]{2}-[0-9]{7}" required>
+                                    <div class="form-text">Format: XX-XXXXXXX</div>
+                                </div>
+                            </div>
+                            
+                            <div class="row mt-4">
+                                <div class="col-md-6">
+                                    <label for="industry" class="form-label">Industry</label>
+                                    <select class="form-select" id="industry">
+                                        <option value="">Select Industry</option>
+                                        <option value="technology">Technology</option>
+                                        <option value="healthcare">Healthcare</option>
+                                        <option value="manufacturing">Manufacturing</option>
+                                        <option value="retail">Retail</option>
+                                        <option value="finance">Finance</option>
+                                        <option value="education">Education</option>
+                                        <option value="construction">Construction</option>
+                                        <option value="hospitality">Hospitality</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="employeeCount" class="form-label">Number of Employees *</label>
+                                    <select class="form-select" id="employeeCount" required>
+                                        <option value="">Select Size</option>
+                                        <option value="1-10">1-10 employees</option>
+                                        <option value="11-25">11-25 employees</option>
+                                        <option value="26-50">26-50 employees</option>
+                                        <option value="51-100">51-100 employees</option>
+                                        <option value="101-500">101-500 employees</option>
+                                        <option value="500+">500+ employees</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="row mt-4">
+                                <div class="col-md-6">
+                                    <label for="effectiveDate" class="form-label">Plan Effective Date *</label>
+                                    <input type="date" class="form-control" id="effectiveDate" required>
+                                    <div class="form-text">When benefits coverage should begin</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="renewalDate" class="form-label">Plan Renewal Date</label>
+                                    <input type="date" class="form-control" id="renewalDate">
+                                    <div class="form-text">Annual renewal date</div>
+                                </div>
+                            </div>
+
+                            <hr class="my-4">
+
+                            <h6 class="mb-3">Primary Contact Information</h6>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <label for="contactName" class="form-label">Contact Name *</label>
+                                    <input type="text" class="form-control" id="contactName" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="contactTitle" class="form-label">Title</label>
+                                    <input type="text" class="form-control" id="contactTitle" placeholder="HR Manager">
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="contactEmail" class="form-label">Email *</label>
+                                    <input type="email" class="form-control" id="contactEmail" required>
+                                </div>
+                            </div>
+
+                            <div class="row mt-3">
+                                <div class="col-md-4">
+                                    <label for="contactPhone" class="form-label">Phone</label>
+                                    <input type="tel" class="form-control" id="contactPhone">
+                                </div>
+                                <div class="col-md-8">
+                                    <label for="address" class="form-label">Business Address</label>
+                                    <textarea class="form-control" id="address" rows="2" placeholder="Street address, city, state, zip"></textarea>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: Plan Selection -->
+            <div class="wizard-content d-none" id="step-2">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-heart text-primary me-2"></i>
+                            Select Benefit Plans
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Select the benefit plans you want to offer to employees. You can customize these later.
+                        </div>
+
+                        <div class="row">
+                            <!-- Medical Plans -->
+                            <div class="col-md-4 mb-4">
+                                <div class="plan-category-card">
+                                    <div class="plan-category-header">
+                                        <i class="fas fa-user-md text-primary"></i>
+                                        <h6>Medical Insurance</h6>
+                                    </div>
+                                    <div class="plan-options">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="medical_hmo" value="medical_hmo">
+                                            <label class="form-check-label" for="medical_hmo">
+                                                <strong>HMO Plan</strong><br>
+                                                <small class="text-muted">Lower cost, requires PCP selection</small>
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="medical_ppo" value="medical_ppo">
+                                            <label class="form-check-label" for="medical_ppo">
+                                                <strong>PPO Plan</strong><br>
+                                                <small class="text-muted">More flexibility, higher cost</small>
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="medical_hdhp" value="medical_hdhp">
+                                            <label class="form-check-label" for="medical_hdhp">
+                                                <strong>HDHP + HSA</strong><br>
+                                                <small class="text-muted">High deductible with HSA</small>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Dental Plans -->
+                            <div class="col-md-4 mb-4">
+                                <div class="plan-category-card">
+                                    <div class="plan-category-header">
+                                        <i class="fas fa-tooth text-info"></i>
+                                        <h6>Dental Insurance</h6>
+                                    </div>
+                                    <div class="plan-options">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="dental_basic" value="dental_basic">
+                                            <label class="form-check-label" for="dental_basic">
+                                                <strong>Basic Dental</strong><br>
+                                                <small class="text-muted">Preventive and basic care</small>
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="dental_enhanced" value="dental_enhanced">
+                                            <label class="form-check-label" for="dental_enhanced">
+                                                <strong>Enhanced Dental</strong><br>
+                                                <small class="text-muted">Includes major procedures</small>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Vision Plans -->
+                            <div class="col-md-4 mb-4">
+                                <div class="plan-category-card">
+                                    <div class="plan-category-header">
+                                        <i class="fas fa-eye text-success"></i>
+                                        <h6>Vision Insurance</h6>
+                                    </div>
+                                    <div class="plan-options">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="vision_standard" value="vision_standard">
+                                            <label class="form-check-label" for="vision_standard">
+                                                <strong>Standard Vision</strong><br>
+                                                <small class="text-muted">Eye exams and glasses</small>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <!-- Life Insurance -->
+                            <div class="col-md-6 mb-4">
+                                <div class="plan-category-card">
+                                    <div class="plan-category-header">
+                                        <i class="fas fa-shield-alt text-warning"></i>
+                                        <h6>Life Insurance</h6>
+                                    </div>
+                                    <div class="plan-options">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="life_basic" value="life_basic">
+                                            <label class="form-check-label" for="life_basic">
+                                                <strong>Basic Life</strong><br>
+                                                <small class="text-muted">1x annual salary coverage</small>
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="life_supplemental" value="life_supplemental">
+                                            <label class="form-check-label" for="life_supplemental">
+                                                <strong>Supplemental Life</strong><br>
+                                                <small class="text-muted">Additional voluntary coverage</small>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Disability -->
+                            <div class="col-md-6 mb-4">
+                                <div class="plan-category-card">
+                                    <div class="plan-category-header">
+                                        <i class="fas fa-crutch text-secondary"></i>
+                                        <h6>Disability Insurance</h6>
+                                    </div>
+                                    <div class="plan-options">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="disability_std" value="disability_std">
+                                            <label class="form-check-label" for="disability_std">
+                                                <strong>Short-Term Disability</strong><br>
+                                                <small class="text-muted">Up to 26 weeks coverage</small>
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="disability_ltd" value="disability_ltd">
+                                            <label class="form-check-label" for="disability_ltd">
+                                                <strong>Long-Term Disability</strong><br>
+                                                <small class="text-muted">Long-term income protection</small>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: Employee Import -->
+            <div class="wizard-content d-none" id="step-3">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-users text-primary me-2"></i>
+                            Add Employees
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card h-100 import-option" onclick="selectImportMethod('bulk')">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-file-excel fa-3x text-success mb-3"></i>
+                                        <h5>Bulk Import</h5>
+                                        <p class="text-muted">Upload employee data from CSV or Excel file</p>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="importMethod" id="bulkImport" value="bulk">
+                                            <label class="form-check-label" for="bulkImport">
+                                                Choose this option
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card h-100 import-option" onclick="selectImportMethod('manual')">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-user-plus fa-3x text-primary mb-3"></i>
+                                        <h5>Manual Entry</h5>
+                                        <p class="text-muted">Add employees one by one using forms</p>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="importMethod" id="manualEntry" value="manual">
+                                            <label class="form-check-label" for="manualEntry">
+                                                Choose this option
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Bulk Import Section -->
+                        <div id="bulkImportSection" class="mt-4 d-none">
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Download our template first!</strong> This ensures your data is in the correct format.
+                            </div>
+                            
+                            <div class="mb-3">
+                                <button class="btn btn-outline-primary" onclick="downloadTemplate()">
+                                    <i class="fas fa-download me-2"></i>Download CSV Template
+                                </button>
+                                <button class="btn btn-outline-success ms-2" onclick="downloadTemplate('excel')">
+                                    <i class="fas fa-file-excel me-2"></i>Download Excel Template
+                                </button>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="employeeFile" class="form-label">Upload Employee File</label>
+                                <input type="file" class="form-control" id="employeeFile" accept=".csv,.xlsx,.xls" onchange="handleFileUpload(event)">
+                                <div class="form-text">Supported formats: CSV, Excel (.xlsx, .xls)</div>
+                            </div>
+
+                            <div id="filePreview" class="d-none">
+                                <h6>Preview (First 5 rows):</h6>
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-bordered" id="previewTable">
+                                        <thead></thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Manual Entry Section -->
+                        <div id="manualEntrySection" class="mt-4 d-none">
+                            <p>You can add employees manually after completing the wizard. This option will take you directly to the employee management section.</p>
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                <strong>Recommended:</strong> If you have more than 5 employees, consider using the bulk import option to save time.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 4: Configuration -->
+            <div class="wizard-content d-none" id="step-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-cogs text-primary me-2"></i>
+                            System Configuration
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Enrollment Settings</h6>
+                                <div class="mb-3">
+                                    <label for="enrollmentWindow" class="form-label">Open Enrollment Window</label>
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <input type="date" class="form-control" id="enrollmentStart" placeholder="Start Date">
+                                        </div>
+                                        <div class="col-6">
+                                            <input type="date" class="form-control" id="enrollmentEnd" placeholder="End Date">
+                                        </div>
+                                    </div>
+                                    <div class="form-text">When can employees make benefit elections?</div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="waitingPeriod" class="form-label">Waiting Period for New Hires</label>
+                                    <select class="form-select" id="waitingPeriod">
+                                        <option value="0">Immediate (First day of employment)</option>
+                                        <option value="30">30 days</option>
+                                        <option value="60">60 days</option>
+                                        <option value="90" selected>90 days</option>
+                                        <option value="first_of_month">First of month following hire date</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="allowWaiveAll">
+                                    <label class="form-check-label" for="allowWaiveAll">
+                                        Allow employees to waive all benefits
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <h6>Payroll Integration</h6>
+                                <div class="mb-3">
+                                    <label for="payrollSystem" class="form-label">Payroll System</label>
+                                    <select class="form-select" id="payrollSystem">
+                                        <option value="">Select payroll system</option>
+                                        <option value="adp">ADP</option>
+                                        <option value="paychex">Paychex</option>
+                                        <option value="quickbooks">QuickBooks Payroll</option>
+                                        <option value="bamboo">BambooHR</option>
+                                        <option value="workday">Workday</option>
+                                        <option value="other">Other / Manual</option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="payrollFrequency" class="form-label">Pay Frequency</label>
+                                    <select class="form-select" id="payrollFrequency">
+                                        <option value="weekly">Weekly</option>
+                                        <option value="biweekly" selected>Bi-weekly</option>
+                                        <option value="semimonthly">Semi-monthly</option>
+                                        <option value="monthly">Monthly</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="autoDeductions" checked>
+                                    <label class="form-check-label" for="autoDeductions">
+                                        Automatically calculate premium deductions
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Notification Settings</h6>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="emailNotifications" checked>
+                                    <label class="form-check-label" for="emailNotifications">
+                                        Send enrollment reminders via email
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="brokerNotifications" checked>
+                                    <label class="form-check-label" for="brokerNotifications">
+                                        Notify broker of enrollment changes
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <h6>Compliance</h6>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="cobraEligible">
+                                    <label class="form-check-label" for="cobraEligible">
+                                        Subject to COBRA requirements
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="acaReporting">
+                                    <label class="form-check-label" for="acaReporting">
+                                        ACA reporting required (50+ employees)
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 5: Review -->
+            <div class="wizard-content d-none" id="step-5">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-check-circle text-primary me-2"></i>
+                            Review & Complete Setup
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="reviewSummary">
+                            <!-- Summary will be populated by JavaScript -->
+                        </div>
+                        
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle me-2"></i>
+                            <strong>Almost done!</strong> Review the information above and click "Complete Setup" to finish the onboarding process.
+                        </div>
+
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="termsAccepted" required>
+                            <label class="form-check-label" for="termsAccepted">
+                                I confirm that all information is accurate and I accept the terms of service
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation Buttons -->
+    <div class="card mt-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between">
+                <button class="btn btn-outline-secondary" id="prevBtn" onclick="previousStep()" disabled>
+                    <i class="fas fa-chevron-left me-2"></i>Previous
+                </button>
+                <div>
+                    <button class="btn btn-outline-secondary me-2" onclick="saveDraft()">
+                        <i class="fas fa-save me-2"></i>Save Draft
+                    </button>
+                    <button class="btn btn-primary" id="nextBtn" onclick="nextStep()">
+                        Next<i class="fas fa-chevron-right ms-2"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<style>
+.wizard-progress {
+    margin-bottom: 2rem;
+}
+
+.wizard-steps {
+    display: flex;
+    justify-content: space-between;
+    position: relative;
+    margin-bottom: 2rem;
+}
+
+.wizard-steps::before {
+    content: '';
+    position: absolute;
+    top: 25px;
+    left: 5%;
+    right: 5%;
+    height: 2px;
+    background: var(--ukg-border);
+    z-index: 1;
+}
+
+.wizard-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    z-index: 2;
+    background: white;
+    padding: 0 15px;
+}
+
+.step-number {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: var(--ukg-border);
+    color: #999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    margin-bottom: 8px;
+    transition: all 0.3s;
+}
+
+.step-title {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #666;
+    text-align: center;
+    transition: all 0.3s;
+}
+
+.wizard-step.active .step-number {
+    background: var(--ukg-primary);
+    color: white;
+}
+
+.wizard-step.active .step-title {
+    color: var(--ukg-primary);
+    font-weight: 600;
+}
+
+.wizard-step.completed .step-number {
+    background: var(--ukg-success);
+    color: white;
+}
+
+.wizard-step.completed .step-number::before {
+    content: '✓';
+}
+
+.plan-category-card {
+    border: 1px solid var(--ukg-border);
+    border-radius: 8px;
+    padding: 1rem;
+    height: 100%;
+    transition: all 0.2s;
+}
+
+.plan-category-card:hover {
+    border-color: var(--ukg-primary);
+    box-shadow: 0 2px 8px rgba(0,169,157,0.1);
+}
+
+.plan-category-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--ukg-border);
+}
+
+.plan-category-header i {
+    font-size: 1.5rem;
+    margin-right: 0.5rem;
+}
+
+.plan-category-header h6 {
+    margin: 0;
+    color: var(--ukg-text);
+}
+
+.plan-options .form-check {
+    margin-bottom: 0.75rem;
+}
+
+.import-option {
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 2px solid transparent;
+}
+
+.import-option:hover {
+    border-color: var(--ukg-primary);
+    box-shadow: 0 4px 8px rgba(0,169,157,0.1);
+}
+
+.import-option.selected {
+    border-color: var(--ukg-primary);
+    background: var(--ukg-accent);
+}
+
+#previewTable {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+@media (max-width: 768px) {
+    .wizard-steps {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .wizard-steps::before {
+        display: none;
+    }
+    
+    .step-title {
+        text-align: left;
+        margin-left: 1rem;
+    }
+    
+    .wizard-step {
+        flex-direction: row;
+        justify-content: flex-start;
+        padding: 0;
+    }
+}
+</style>
+
+<script>
+let currentStep = 1;
+let wizardData = {};
+
+// Step navigation
+function nextStep() {
+    if (validateCurrentStep()) {
+        if (currentStep < 5) {
+            currentStep++;
+            showStep(currentStep);
+        } else {
+            completeSetup();
+        }
+    }
+}
+
+function previousStep() {
+    if (currentStep > 1) {
+        currentStep--;
+        showStep(currentStep);
+    }
+}
+
+function showStep(step) {
+    // Hide all steps
+    document.querySelectorAll('.wizard-content').forEach(content => {
+        content.classList.add('d-none');
+    });
+    
+    // Show current step
+    document.getElementById(`step-${step}`).classList.remove('d-none');
+    
+    // Update progress indicators
+    document.querySelectorAll('.wizard-step').forEach((stepEl, index) => {
+        stepEl.classList.remove('active', 'completed');
+        if (index + 1 < step) {
+            stepEl.classList.add('completed');
+        } else if (index + 1 === step) {
+            stepEl.classList.add('active');
+        }
+    });
+    
+    // Update navigation buttons
+    document.getElementById('prevBtn').disabled = (step === 1);
+    
+    const nextBtn = document.getElementById('nextBtn');
+    if (step === 5) {
+        nextBtn.innerHTML = '<i class="fas fa-check me-2"></i>Complete Setup';
+        nextBtn.className = 'btn btn-success';
+    } else {
+        nextBtn.innerHTML = 'Next<i class="fas fa-chevron-right ms-2"></i>';
+        nextBtn.className = 'btn btn-primary';
+    }
+    
+    // Update review step if we're on step 5
+    if (step === 5) {
+        updateReviewSummary();
+    }
+}
+
+function validateCurrentStep() {
+    const currentStepEl = document.getElementById(`step-${currentStep}`);
+    const requiredInputs = currentStepEl.querySelectorAll('[required]');
+    
+    let isValid = true;
+    requiredInputs.forEach(input => {
+        if (!input.value.trim()) {
+            input.classList.add('is-invalid');
+            isValid = false;
+        } else {
+            input.classList.remove('is-invalid');
+        }
+    });
+    
+    // Additional validation for specific steps
+    if (currentStep === 2) {
+        const checkedPlans = currentStepEl.querySelectorAll('input[type="checkbox"]:checked');
+        if (checkedPlans.length === 0) {
+            alert('Please select at least one benefit plan.');
+            isValid = false;
+        }
+    }
+    
+    if (currentStep === 3) {
+        const importMethod = document.querySelector('input[name="importMethod"]:checked');
+        if (!importMethod) {
+            alert('Please select an import method.');
+            isValid = false;
+        }
+    }
+    
+    return isValid;
+}
+
+// Import method selection
+function selectImportMethod(method) {
+    document.querySelectorAll('.import-option').forEach(option => {
+        option.classList.remove('selected');
+    });
+    
+    document.getElementById(`${method}Import`).checked = true;
+    document.getElementById(`${method}Import`).closest('.import-option').classList.add('selected');
+    
+    document.getElementById('bulkImportSection').classList.toggle('d-none', method !== 'bulk');
+    document.getElementById('manualEntrySection').classList.toggle('d-none', method !== 'manual');
+}
+
+// File handling
+function downloadTemplate(format = 'csv') {
+    // Download from the real API endpoint
+    window.location.href = '/api/download/employee-template/';
+}
+
+function handleFileUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    // Store file for later upload during completion
+    wizardData.employeeFile = file;
+    
+    // Show preview for CSV files
+    if (file.name.endsWith('.csv')) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            parseCSV(e.target.result);
+        };
+        reader.readAsText(file);
+    } else if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+        // For Excel files, show basic info
+        document.getElementById('filePreview').classList.remove('d-none');
+        document.getElementById('previewTable').innerHTML = `
+            <thead><tr><th colspan="3">Excel File: ${file.name}</th></tr></thead>
+            <tbody><tr><td colspan="3">File size: ${(file.size / 1024).toFixed(1)} KB<br>Preview will be available after processing.</td></tr></tbody>
+        `;
+    }
+}
+
+function parseCSV(content) {
+    const lines = content.split('\\n');
+    const headers = lines[0].split(',');
+    const preview = lines.slice(1, 6); // First 5 data rows
+    
+    const table = document.getElementById('previewTable');
+    const thead = table.querySelector('thead');
+    const tbody = table.querySelector('tbody');
+    
+    // Clear existing content
+    thead.innerHTML = '';
+    tbody.innerHTML = '';
+    
+    // Add headers
+    const headerRow = document.createElement('tr');
+    headers.forEach(header => {
+        const th = document.createElement('th');
+        th.textContent = header.trim();
+        headerRow.appendChild(th);
+    });
+    thead.appendChild(headerRow);
+    
+    // Add preview rows
+    preview.forEach(line => {
+        if (line.trim()) {
+            const row = document.createElement('tr');
+            const cells = line.split(',');
+            cells.forEach(cell => {
+                const td = document.createElement('td');
+                td.textContent = cell.trim();
+                row.appendChild(td);
+            });
+            tbody.appendChild(row);
+        }
+    });
+    
+    document.getElementById('filePreview').classList.remove('d-none');
+}
+
+// Review summary
+function updateReviewSummary() {
+    const summary = document.getElementById('reviewSummary');
+    
+    // Collect form data
+    const companyName = document.getElementById('companyName').value;
+    const ein = document.getElementById('ein').value;
+    const employeeCount = document.getElementById('employeeCount').value;
+    const effectiveDate = document.getElementById('effectiveDate').value;
+    const contactName = document.getElementById('contactName').value;
+    
+    // Collect selected plans
+    const selectedPlans = Array.from(document.querySelectorAll('#step-2 input[type="checkbox"]:checked'))
+        .map(input => input.nextElementSibling.querySelector('strong').textContent);
+    
+    const importMethod = document.querySelector('input[name="importMethod"]:checked')?.value || 'Not selected';
+    
+    summary.innerHTML = `
+        <div class="row">
+            <div class="col-md-6">
+                <h6>Company Information</h6>
+                <ul class="list-unstyled">
+                    <li><strong>Company:</strong> ${companyName}</li>
+                    <li><strong>EIN:</strong> ${ein}</li>
+                    <li><strong>Size:</strong> ${employeeCount}</li>
+                    <li><strong>Effective Date:</strong> ${effectiveDate}</li>
+                    <li><strong>Contact:</strong> ${contactName}</li>
+                </ul>
+            </div>
+            <div class="col-md-6">
+                <h6>Selected Plans</h6>
+                <ul class="list-unstyled">
+                    ${selectedPlans.map(plan => `<li>• ${plan}</li>`).join('')}
+                </ul>
+                <h6 class="mt-3">Employee Import</h6>
+                <p>${importMethod === 'bulk' ? 'Bulk import from file' : 'Manual entry'}</p>
+            </div>
+        </div>
+    `;
+}
+
+// Utility functions
+function saveDraft() {
+    alert('Draft saved! You can return to complete this setup later.');
+}
+
+function saveAndExit() {
+    if (confirm('Are you sure you want to save and exit? You can resume this setup later.')) {
+        saveDraft();
+        window.location.href = '{% url "dashboard" %}';
+    }
+}
+
+async function completeSetup() {
+    if (!document.getElementById('termsAccepted').checked) {
+        alert('Please accept the terms of service to complete setup.');
+        return;
+    }
+    
+    // Show loading state
+    const btn = document.getElementById('nextBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Setting up...';
+    
+    try {
+        // Step 1: Create company
+        const companyData = {
+            name: document.getElementById('companyName').value,
+            ein: document.getElementById('ein').value,
+            industry: document.getElementById('industry').value,
+            size: document.getElementById('employeeCount').value,
+            effective_date: document.getElementById('effectiveDate').value,
+            renewal_date: document.getElementById('renewalDate').value,
+            contact_name: document.getElementById('contactName').value,
+            contact_title: document.getElementById('contactTitle').value,
+            contact_email: document.getElementById('contactEmail').value,
+            contact_phone: document.getElementById('contactPhone').value,
+            address: document.getElementById('address').value,
+            status: 'active'
+        };
+        
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        
+        // Create employer
+        const employerResponse = await fetch('/api/api/employers/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken,
+            },
+            body: JSON.stringify(companyData)
+        });
+        
+        if (!employerResponse.ok) {
+            throw new Error('Failed to create employer');
+        }
+        
+        const employer = await employerResponse.json();
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Setting up benefit plans...';
+        
+        // Step 2: Create plan templates based on selections
+        const selectedPlans = Array.from(document.querySelectorAll('#step-2 input[type="checkbox"]:checked'))
+            .map(input => input.value);
+        
+        if (selectedPlans.length > 0) {
+            const planResponse = await fetch('/api/create/plan-templates/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken,
+                },
+                body: JSON.stringify({
+                    employer_id: employer.id,
+                    selected_plans: selectedPlans
+                })
+            });
+            
+            if (!planResponse.ok) {
+                console.warn('Plan creation failed, but continuing with setup');
+            }
+        }
+        
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Importing employees...';
+        
+        // Step 3: Import employees if file was uploaded
+        if (wizardData.employeeFile && document.querySelector('input[name="importMethod"]:checked')?.value === 'bulk') {
+            const formData = new FormData();
+            formData.append('file', wizardData.employeeFile);
+            formData.append('employer_id', employer.id);
+            
+            const importResponse = await fetch('/api/bulk-import/employees/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                },
+                body: formData
+            });
+            
+            const importResult = await importResponse.json();
+            
+            if (importResponse.ok) {
+                let message = `Company setup completed successfully!\\n`;
+                message += `✓ Company "${employer.name}" created\\n`;
+                if (importResult.total_created > 0) {
+                    message += `✓ ${importResult.total_created} employees imported\\n`;
+                }
+                if (importResult.total_errors > 0) {
+                    message += `⚠ ${importResult.total_errors} rows had errors\\n`;
+                }
+                alert(message);
+            } else {
+                alert(`Company created, but employee import failed: ${importResult.error}`);
+            }
+        } else {
+            alert(`Company "${employer.name}" created successfully!\\nYou can now add employees manually.`);
+        }
+        
+        window.location.href = '{% url "dashboard" %}';
+        
+    } catch (error) {
+        console.error('Setup failed:', error);
+        alert('Setup failed: ' + error.message);
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-check me-2"></i>Complete Setup';
+        btn.className = 'btn btn-success';
+    }
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    showStep(1);
+});
+</script>
+{% endblock %}
