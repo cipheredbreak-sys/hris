@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: hris-backend
+    env: python
+    plan: free
+    buildCommand: "pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate"
+    startCommand: "gunicorn group_benefits_backend.wsgi:application"
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: group_benefits_backend.settings_production
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: DEV_MODE
+        value: "False"
+      - key: ALLOWED_HOSTS
+        sync: false
+
+databases:
+  - name: hris-db
+    plan: free
+    databaseName: hris
+    user: hris_user

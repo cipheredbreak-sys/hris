@@ -70,16 +70,63 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      // Demo login - accept demo credentials
-      if (email === 'demo@example.com' && password === 'demo123') {
-        const mockToken = 'demo-token-' + Date.now();
-        const mockUser = {
+      // Demo login - accept demo credentials for different personas
+      const testUsers = {
+        'superadmin@hris.com': {
           id: '1',
+          email: 'superadmin@hris.com',
+          firstName: 'Sarah',
+          lastName: 'Administrator',
+          role: 'super_admin'
+        },
+        'broker.admin@brokerage.com': {
+          id: '2',
+          email: 'broker.admin@brokerage.com',
+          firstName: 'Mike',
+          lastName: 'Broker',
+          role: 'broker_admin'
+        },
+        'broker.user@brokerage.com': {
+          id: '3',
+          email: 'broker.user@brokerage.com',
+          firstName: 'Lisa',
+          lastName: 'Sales',
+          role: 'broker_user'
+        },
+        'employer.admin@company.com': {
+          id: '4',
+          email: 'employer.admin@company.com',
+          firstName: 'John',
+          lastName: 'Manager',
+          role: 'employer_admin'
+        },
+        'hr@company.com': {
+          id: '5',
+          email: 'hr@company.com',
+          firstName: 'Emma',
+          lastName: 'HRDirector',
+          role: 'employer_hr'
+        },
+        'employee@company.com': {
+          id: '6',
+          email: 'employee@company.com',
+          firstName: 'David',
+          lastName: 'Employee',
+          role: 'employee'
+        },
+        'demo@example.com': {
+          id: '7',
           email: 'demo@example.com',
           firstName: 'Demo',
           lastName: 'User',
-          role: 'broker_admin' // Use proper RBAC role
-        };
+          role: 'broker_admin'
+        }
+      };
+
+      // Check for test user credentials (password is always "demo123")
+      if (testUsers[email as keyof typeof testUsers] && password === 'demo123') {
+        const mockToken = 'demo-token-' + Date.now();
+        const mockUser = testUsers[email as keyof typeof testUsers];
         
         localStorage.setItem('token', mockToken);
         setUser(mockUser);

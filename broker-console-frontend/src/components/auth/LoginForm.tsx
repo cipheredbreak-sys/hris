@@ -20,6 +20,7 @@ import {
   Google as GoogleIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../../contexts/AuthContext';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const UKG_THEME = {
   primary: {
@@ -48,6 +49,8 @@ export const LoginForm: React.FC = () => {
   const [loading, setLoading] = useState(false);
   
   const { login, socialLogin } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,7 +59,10 @@ export const LoginForm: React.FC = () => {
 
     try {
       const success = await login(email, password);
-      if (!success) {
+      if (success) {
+        // Force redirect to dashboard
+        window.location.href = '/dashboard';
+      } else {
         setError('Invalid email or password. Please try again.');
       }
     } catch (err) {
@@ -72,7 +78,10 @@ export const LoginForm: React.FC = () => {
 
     try {
       const success = await socialLogin(provider);
-      if (!success) {
+      if (success) {
+        // Force redirect to dashboard
+        window.location.href = '/dashboard';
+      } else {
         setError(`${provider} authentication failed. Please try again.`);
       }
     } catch (err) {

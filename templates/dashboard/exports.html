@@ -345,18 +345,62 @@
 
 <script>
 function startExport(category, type) {
-    const exportName = `${category.charAt(0).toUpperCase() + category.slice(1)} ${type.charAt(0).toUpperCase() + type.slice(1)} Export`;
-    alert(`Starting ${exportName}...`);
+    // For now, we'll create an Aetna export as an example
+    if (category === 'carrier' && type === 'enrollment') {
+        // Get the first employer for demo purposes
+        fetch('/api/api/employers/')
+            .then(response => response.json())
+            .then(data => {
+                if (data.results && data.results.length > 0) {
+                    const firstEmployer = data.results[0];
+                    createExport('aetna', firstEmployer.id);
+                } else {
+                    alert('No employers found. Please add an employer first.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error fetching employers');
+            });
+    } else {
+        const exportName = `${category.charAt(0).toUpperCase() + category.slice(1)} ${type.charAt(0).toUpperCase() + type.slice(1)} Export`;
+        alert(`${exportName} functionality coming soon...`);
+    }
+}
+
+function createExport(carrierType, employerId) {
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+                    document.querySelector('meta[name="csrf-token"]')?.content;
     
-    // In real implementation, this would trigger the export process
-    setTimeout(() => {
-        alert(`${exportName} completed successfully!`);
-    }, 2000);
+    fetch('/api/api/export-jobs/generate_aetna_export/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken,
+        },
+        body: JSON.stringify({
+            employer_id: employerId,
+            coverage_type: 'medical'
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.job_id) {
+            alert(`Export created successfully! Job ID: ${data.job_id}`);
+            location.reload(); // Refresh to show new export
+        } else {
+            alert(`Error creating export: ${data.error || 'Unknown error'}`);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error creating export');
+    });
 }
 
 function downloadExport(exportId) {
-    alert(`Downloading export ${exportId}...`);
-    // In real implementation, this would trigger file download
+    // Trigger download using the API endpoint
+    window.location.href = `/api/api/export-jobs/${exportId}/download/`;
 }
 
 function viewExportDetails(exportId) {

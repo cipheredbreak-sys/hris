@@ -52,7 +52,7 @@ const AppLayout: React.FC = () => {
         display: 'flex', 
         justifyContent: 'center', 
         alignItems: 'center', 
-        minHeight: '100vh' 
+        minHeight: '100vh'
       }}>
         Loading...
       </div>
@@ -76,7 +76,15 @@ const AppLayout: React.FC = () => {
           open={navigationOpen} 
           onClose={() => setNavigationOpen(false)} 
         />
-        <Box sx={{ flexGrow: 1, minHeight: '100vh' }}>
+        <Box 
+          component="main" 
+          sx={{ 
+            flexGrow: 1, 
+            minHeight: '100vh',
+            paddingTop: '64px', // Account for AppBar height
+            width: '100%'
+          }}
+        >
           <Routes>
             <Route 
               path="/dashboard" 

@@ -440,3 +440,109 @@ class EnrollmentEvent(TimeStampedModel):
     
     class Meta:
         ordering = ['-effective_date', '-processed_at']
+
+class EmployeeFormSubmission(TimeStampedModel):
+    """Employee form submissions for employer review"""
+    STATUS_CHOICES = [
+        ('pending', 'Pending Review'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+        ('changes_requested', 'Changes Requested'),
+    ]
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    employer = models.ForeignKey(Employer, on_delete=models.CASCADE, related_name='form_submissions')
+    
+    # Employee Information
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
+    email = models.EmailField()
+    phone = models.CharField(max_length=20, blank=True)
+    date_of_birth = models.DateField()
+    ssn = models.CharField(max_length=11, help_text="Format: XXX-XX-XXXX")
+    
+    # Address Information
+    address_line1 = models.CharField(max_length=255)
+    address_line2 = models.CharField(max_length=255, blank=True)
+    city = models.CharField(max_length=100)
+    state = models.CharField(max_length=2)
+    zip_code = models.CharField(max_length=10)
+    
+    # Employment Information
+    hire_date = models.DateField()
+    job_title = models.CharField(max_length=100, blank=True)
+    department = models.CharField(max_length=100, blank=True)
+    salary = models.DecimalField(max_digits=10, decimal_places=2)
+    hours_per_week = models.DecimalField(max_digits=4, decimal_places=1, default=40.0)
+    
+    # Emergency Contact
+    emergency_contact_name = models.CharField(max_length=255, blank=True)
+    emergency_contact_phone = models.CharField(max_length=20, blank=True)
+    emergency_contact_relationship = models.CharField(max_length=50, blank=True)
+    
+    # Form Status
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    reviewed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    notes = models.TextField(blank=True)
+    
+    # If approved, link to created employee record
+    created_employee = models.OneToOneField(Employee, on_delete=models.SET_NULL, null=True, blank=True, related_name='form_submission')
+    
+    def __str__(self):
+        return f"{self.first_name} {self.last_name} - {self.employer.name} ({self.status})"
+    
+    class Meta:
+        ordering = ['-created_at']
+
+class EmployeePortalUser(TimeStampedModel):
+    """Portal access for employees to check their status and manage profile"""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    employee = models.OneToOneField(Employee, on_delete=models.CASCADE, null=True, blank=True, related_name='portal_user')
+    form_submission = models.OneToOneField(EmployeeFormSubmission, on_delete=models.CASCADE, null=True, blank=True, related_name='portal_user')
+    
+    # Authentication fields
+    email = models.EmailField(unique=True)
+    password_hash = models.CharField(max_length=255)
+    
+    # Access control
+    is_active = models.BooleanField(default=True)
+    last_login = models.DateTimeField(null=True, blank=True)
+    password_reset_token = models.CharField(max_length=255, blank=True)
+    password_reset_expires = models.DateTimeField(null=True, blank=True)
+    
+    # Verification status
+    email_verified = models.BooleanField(default=False)
+    email_verification_token = models.CharField(max_length=255, blank=True)
+    
+    def set_password(self, raw_password):
+        """Hash and set password"""
+        import hashlib
+        self.password_hash = hashlib.sha256(raw_password.encode()).hexdigest()
+    
+    def check_password(self, raw_password):
+        """Check if provided password matches stored hash"""
+        import hashlib
+        return self.password_hash == hashlib.sha256(raw_password.encode()).hexdigest()
+    
+    @property
+    def full_name(self):
+        if self.employee:
+            return f"{self.employee.first_name} {self.employee.last_name}"
+        elif self.form_submission:
+            return f"{self.form_submission.first_name} {self.form_submission.last_name}"
+        return self.email
+    
+    @property
+    def status(self):
+        if self.employee:
+            return 'active_employee'
+        elif self.form_submission:
+            return self.form_submission.status
+        return 'no_submission'
+    
+    def __str__(self):
+        return f"{self.email} - {self.full_name}"
+    
+    class Meta:
+        ordering = ['-created_at']

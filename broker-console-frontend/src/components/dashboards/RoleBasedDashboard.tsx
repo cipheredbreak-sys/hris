@@ -558,42 +558,52 @@ export const RoleBasedDashboard: React.FC = () => {
 
   if (!user) {
     return (
-      <Alert severity="warning">
-        Please log in to view your dashboard.
-      </Alert>
+      <Box sx={{ p: 3 }}>
+        <Alert severity="warning">
+          Please log in to view your dashboard.
+        </Alert>
+      </Box>
     );
   }
 
   return (
     <Box sx={{ p: 3 }}>
-      <PermissionGate role={SystemRole.SUPER_ADMIN}>
+      {userRole === SystemRole.SUPER_ADMIN && (
         <SuperAdminDashboard />
-      </PermissionGate>
+      )}
 
-      <PermissionGate roles={[SystemRole.BROKER_ADMIN, SystemRole.BROKER_USER]}>
+      {userRole === SystemRole.BROKER_ADMIN && (
         <BrokerDashboard />
-      </PermissionGate>
+      )}
 
-      <PermissionGate roles={[SystemRole.EMPLOYER_ADMIN, SystemRole.EMPLOYER_HR]}>
+      {userRole === SystemRole.BROKER_USER && (
+        <BrokerDashboard />
+      )}
+
+      {userRole === SystemRole.EMPLOYER_ADMIN && (
         <EmployerDashboard />
-      </PermissionGate>
+      )}
 
-      <PermissionGate role={SystemRole.EMPLOYEE}>
+      {userRole === SystemRole.EMPLOYER_HR && (
+        <EmployerDashboard />
+      )}
+
+      {userRole === SystemRole.EMPLOYEE && (
         <EmployeeDashboard />
-      </PermissionGate>
+      )}
 
       {/* Fallback for unrecognized roles */}
-      <PermissionGate customCheck={() => !userRole || !Object.values(SystemRole).includes(userRole as SystemRole)}>
+      {(!userRole || !Object.values(SystemRole).includes(userRole as SystemRole)) && (
         <Alert severity="info">
           <Typography variant="h6" gutterBottom>
             Welcome to HRIS Group Benefits!
           </Typography>
           <Typography>
-            Your account role ({userRole || 'unknown'}) is not fully configured. 
+            Your account role is not fully configured. 
             Please contact your administrator to set up your dashboard access.
           </Typography>
         </Alert>
-      </PermissionGate>
+      )}
     </Box>
   );
 };

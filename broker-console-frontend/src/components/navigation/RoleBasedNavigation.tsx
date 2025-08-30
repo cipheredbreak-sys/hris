@@ -41,6 +41,7 @@ import {
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useRBAC, NavigationMenuItem } from '../../contexts/RBACContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { SystemRole, PermissionResource, PermissionAction } from '../../types/rbac';
 import { PermissionGate } from '../rbac/PermissionGate';
 
@@ -275,6 +276,7 @@ export const RoleBasedNavigation: React.FC<RoleBasedNavigationProps> = ({ open, 
   const navigate = useNavigate();
   const location = useLocation();
   const { filterMenuItems, user, userRole } = useRBAC();
+  const { logout } = useAuth();
   const [expandedItems, setExpandedItems] = React.useState<string[]>(['employers', 'employees', 'plans']);
   const [userMenuAnchor, setUserMenuAnchor] = React.useState<null | HTMLElement>(null);
 
@@ -302,6 +304,12 @@ export const RoleBasedNavigation: React.FC<RoleBasedNavigationProps> = ({ open, 
 
   const handleUserMenuClose = () => {
     setUserMenuAnchor(null);
+  };
+
+  const handleLogout = () => {
+    handleUserMenuClose();
+    logout();
+    navigate('/login');
   };
 
   const getRoleDisplayInfo = (role: SystemRole | string | null) => {
@@ -455,7 +463,7 @@ export const RoleBasedNavigation: React.FC<RoleBasedNavigationProps> = ({ open, 
           <ListItemText>Settings</ListItemText>
         </MenuItem>
         <Divider />
-        <MenuItem onClick={() => { handleUserMenuClose(); /* implement logout */ }}>
+        <MenuItem onClick={handleLogout}>
           <ListItemIcon><ExitToApp /></ListItemIcon>
           <ListItemText>Sign Out</ListItemText>
         </MenuItem>

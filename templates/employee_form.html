@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Information Form - {{ employer.name }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --ukg-primary: #1e3a8a;
+            --ukg-accent: #dbeafe;
+            --ukg-text: #374151;
+            --ukg-border: #e5e7eb;
+        }
+        
+        body {
+            background: linear-gradient(135deg, var(--ukg-accent) 0%, #ffffff 100%);
+            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+        
+        .form-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(30, 58, 138, 0.1);
+            padding: 2rem;
+            margin: 2rem auto;
+            max-width: 800px;
+        }
+        
+        .form-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--ukg-border);
+        }
+        
+        .form-header h1 {
+            color: var(--ukg-primary);
+            font-weight: 700;
+        }
+        
+        .form-section {
+            margin-bottom: 2rem;
+        }
+        
+        .form-section h4 {
+            color: var(--ukg-primary);
+            border-bottom: 1px solid var(--ukg-border);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .btn-primary {
+            background: var(--ukg-primary);
+            border-color: var(--ukg-primary);
+            padding: 12px 30px;
+            font-weight: 600;
+        }
+        
+        .btn-primary:hover {
+            background: #1d4ed8;
+            border-color: #1d4ed8;
+        }
+        
+        .required {
+            color: #dc2626;
+        }
+        
+        .form-control:focus {
+            border-color: var(--ukg-primary);
+            box-shadow: 0 0 0 0.2rem rgba(30, 58, 138, 0.25);
+        }
+        
+        .alert-info {
+            background-color: var(--ukg-accent);
+            border-color: var(--ukg-primary);
+            color: var(--ukg-text);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="form-container">
+            <div class="form-header">
+                <h1><i class="fas fa-user-plus me-2"></i>Employee Information Form</h1>
+                <p class="text-muted">{{ employer.name }}</p>
+            </div>
+            
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>
+                Please fill out all required fields marked with <span class="required">*</span>. 
+                Your information will be reviewed by your employer before being added to the system.
+            </div>
+            
+            <form id="employeeForm">
+                {% csrf_token %}
+                <input type="hidden" id="employerId" value="{{ employer.id }}">
+                
+                <!-- Personal Information -->
+                <div class="form-section">
+                    <h4><i class="fas fa-user me-2"></i>Personal Information</h4>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="firstName" class="form-label">First Name <span class="required">*</span></label>
+                            <input type="text" class="form-control" id="firstName" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="lastName" class="form-label">Last Name <span class="required">*</span></label>
+                            <input type="text" class="form-control" id="lastName" required>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <label for="email" class="form-label">Email <span class="required">*</span></label>
+                            <input type="email" class="form-control" id="email" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="phone" class="form-label">Phone Number</label>
+                            <input type="tel" class="form-control" id="phone" placeholder="(555) 123-4567">
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <label for="dateOfBirth" class="form-label">Date of Birth <span class="required">*</span></label>
+                            <input type="date" class="form-control" id="dateOfBirth" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="ssn" class="form-label">Social Security Number <span class="required">*</span></label>
+                            <input type="text" class="form-control" id="ssn" placeholder="XXX-XX-XXXX" required>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Address Information -->
+                <div class="form-section">
+                    <h4><i class="fas fa-home me-2"></i>Address Information</h4>
+                    <div class="row">
+                        <div class="col-12">
+                            <label for="addressLine1" class="form-label">Address Line 1 <span class="required">*</span></label>
+                            <input type="text" class="form-control" id="addressLine1" required>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <label for="addressLine2" class="form-label">Address Line 2</label>
+                            <input type="text" class="form-control" id="addressLine2">
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-md-4">
+                            <label for="city" class="form-label">City <span class="required">*</span></label>
+                            <input type="text" class="form-control" id="city" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="state" class="form-label">State <span class="required">*</span></label>
+                            <select class="form-control" id="state" required>
+                                <option value="">Select State</option>
+                                <option value="AL">Alabama</option>
+                                <option value="AK">Alaska</option>
+                                <option value="AZ">Arizona</option>
+                                <option value="AR">Arkansas</option>
+                                <option value="CA">California</option>
+                                <option value="CO">Colorado</option>
+                                <option value="CT">Connecticut</option>
+                                <option value="DE">Delaware</option>
+                                <option value="FL">Florida</option>
+                                <option value="GA">Georgia</option>
+                                <!-- Add all other states as needed -->
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="zipCode" class="form-label">ZIP Code <span class="required">*</span></label>
+                            <input type="text" class="form-control" id="zipCode" placeholder="12345" required>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Employment Information -->
+                <div class="form-section">
+                    <h4><i class="fas fa-briefcase me-2"></i>Employment Information</h4>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="hireDate" class="form-label">Hire Date <span class="required">*</span></label>
+                            <input type="date" class="form-control" id="hireDate" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="jobTitle" class="form-label">Job Title</label>
+                            <input type="text" class="form-control" id="jobTitle">
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <label for="department" class="form-label">Department</label>
+                            <input type="text" class="form-control" id="department">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="salary" class="form-label">Annual Salary <span class="required">*</span></label>
+                            <input type="number" class="form-control" id="salary" min="0" step="0.01" required>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <label for="hoursPerWeek" class="form-label">Hours Per Week <span class="required">*</span></label>
+                            <input type="number" class="form-control" id="hoursPerWeek" min="1" max="60" step="0.5" value="40" required>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Emergency Contact -->
+                <div class="form-section">
+                    <h4><i class="fas fa-phone-alt me-2"></i>Emergency Contact</h4>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <label for="emergencyContactName" class="form-label">Contact Name</label>
+                            <input type="text" class="form-control" id="emergencyContactName">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="emergencyContactPhone" class="form-label">Contact Phone</label>
+                            <input type="tel" class="form-control" id="emergencyContactPhone">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="emergencyContactRelationship" class="form-label">Relationship</label>
+                            <input type="text" class="form-control" id="emergencyContactRelationship" placeholder="e.g., Spouse, Parent">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Submit Button -->
+                <div class="text-center mt-4">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="fas fa-paper-plane me-2"></i>Submit Application
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('employeeForm');
+            
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = {
+                    employer: document.getElementById('employerId').value,
+                    first_name: document.getElementById('firstName').value,
+                    last_name: document.getElementById('lastName').value,
+                    email: document.getElementById('email').value,
+                    phone: document.getElementById('phone').value,
+                    date_of_birth: document.getElementById('dateOfBirth').value,
+                    ssn: document.getElementById('ssn').value,
+                    address_line1: document.getElementById('addressLine1').value,
+                    address_line2: document.getElementById('addressLine2').value,
+                    city: document.getElementById('city').value,
+                    state: document.getElementById('state').value,
+                    zip_code: document.getElementById('zipCode').value,
+                    hire_date: document.getElementById('hireDate').value,
+                    job_title: document.getElementById('jobTitle').value,
+                    department: document.getElementById('department').value,
+                    salary: parseFloat(document.getElementById('salary').value),
+                    hours_per_week: parseFloat(document.getElementById('hoursPerWeek').value),
+                    emergency_contact_name: document.getElementById('emergencyContactName').value,
+                    emergency_contact_phone: document.getElementById('emergencyContactPhone').value,
+                    emergency_contact_relationship: document.getElementById('emergencyContactRelationship').value
+                };
+                
+                const submitButton = form.querySelector('button[type="submit"]');
+                submitButton.disabled = true;
+                submitButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Submitting...';
+                
+                fetch('/api/api/employee-form-submissions/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.id) {
+                        alert('Thank you! Your information has been submitted successfully. Your employer will review it and get back to you.');
+                        form.reset();
+                    } else {
+                        alert('Error submitting form: ' + (data.error || 'Unknown error'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error submitting form. Please try again.');
+                })
+                .finally(() => {
+                    submitButton.disabled = false;
+                    submitButton.innerHTML = '<i class="fas fa-paper-plane me-2"></i>Submit Application';
+                });
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,9 +1,83 @@
-.env
-claude_spec.md
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Django
+*.log
+local_settings.py
 db.sqlite3
+db.sqlite3-journal
+media/
+
+# Static files
+staticfiles/
+static/
+
+# Environment variables
+.env
+.env.local
+.env.production
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Node.js (for frontend)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Exports
+exports/*.xlsx
+exports/*.csv
+
+# Test files
+test_*.json
+test_*.csv
+# Local Netlify folder
+.netlify
+.env.production.example
+claude_spec.md
+DEPLOYMENT.md
 development_tickets.md
 RBAC_IMPLEMENTATION.md
 .claude/agents/product-owner-prd-reviewer.md
-requirements.txt
 broker-console-frontend/README.md
 AUTHENTICATION.md

@@ -15,7 +15,7 @@ from .models import (
     Broker, Employer, Carrier, Plan, PlanPremium, 
     EmployerOffering, CarrierCsvTemplate, ExportJob,
     Employee, Dependent, EnrollmentPeriod, EmployeeEnrollment,
-    PlanEnrollment, EnrollmentEvent
+    PlanEnrollment, EnrollmentEvent, EmployeeFormSubmission, EmployeePortalUser
 )
 from .serializers import (
     BrokerSerializer, EmployerSerializer, EmployerDetailSerializer,
@@ -26,7 +26,9 @@ from .serializers import (
     EnrollmentPeriodSerializer, EnrollmentPeriodDetailSerializer,
     EmployeeEnrollmentSerializer, EmployeeEnrollmentDetailSerializer,
     EmployeeEnrollmentSummarySerializer, PlanEnrollmentSerializer,
-    EnrollmentEventSerializer
+    EnrollmentEventSerializer, EmployeeFormSubmissionSerializer,
+    EmployeeFormSubmissionListSerializer, EmployeePortalUserSerializer,
+    EmployeePortalLoginSerializer, EmployeePortalRegisterSerializer
 )
 
 class BrokerViewSet(viewsets.ModelViewSet):
@@ -225,6 +227,60 @@ class EmployerViewSet(viewsets.ModelViewSet):
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = f'attachment; filename="employee_import_template.csv"'
         df.to_csv(response, index=False)
+        
+        return response
+    
+    @action(detail=True, methods=['get'])
+    def download_latest_export(self, request, pk=None):
+        """Download the latest completed export for this employer"""
+        employer = self.get_object()
+        
+        # Get the latest completed export job for this employer
+        latest_export = ExportJob.objects.filter(
+            employer=employer,
+            status='completed'
+        ).order_by('-created_at').first()
+        
+        # Always generate a current CSV export regardless of previous export jobs
+        
+        # Generate CSV export of all employees for this employer
+        employees = Employee.objects.filter(employer=employer).select_related('employer')
+        
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = f'attachment; filename="{employer.name}_employees_export.csv"'
+        
+        import csv
+        writer = csv.writer(response)
+        
+        # Write headers
+        writer.writerow([
+            'Employee ID', 'First Name', 'Last Name', 'Email', 'Phone',
+            'Date of Birth', 'SSN', 'Address', 'City', 'State', 'Zip',
+            'Hire Date', 'Job Title', 'Department', 'Salary', 'Hours per Week',
+            'Employment Status'
+        ])
+        
+        # Write employee data
+        for emp in employees:
+            writer.writerow([
+                emp.employee_id,
+                emp.first_name,
+                emp.last_name,
+                emp.email,
+                emp.phone,
+                emp.date_of_birth,
+                emp.ssn,
+                emp.address_line1,
+                emp.city,
+                emp.state,
+                emp.zip_code,
+                emp.hire_date,
+                emp.job_title,
+                emp.department,
+                emp.salary,
+                emp.hours_per_week,
+                emp.employment_status
+            ])
         
         return response
 
@@ -630,3 +686,256 @@ class EnrollmentEventViewSet(viewsets.ModelViewSet):
         events = EnrollmentEvent.objects.filter(effective_date__gte=thirty_days_ago)
         serializer = self.get_serializer(events, many=True)
         return Response(serializer.data)
+
+class EmployeeFormSubmissionViewSet(viewsets.ModelViewSet):
+    queryset = EmployeeFormSubmission.objects.all()
+    serializer_class = EmployeeFormSubmissionSerializer
+    
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return EmployeeFormSubmissionListSerializer
+        return EmployeeFormSubmissionSerializer
+    
+    @action(detail=False, methods=['get'])
+    def by_employer(self, request):
+        employer_id = request.query_params.get('employer_id')
+        if employer_id:
+            submissions = EmployeeFormSubmission.objects.filter(employer_id=employer_id)
+            serializer = self.get_serializer(submissions, many=True)
+            return Response(serializer.data)
+        return Response({'error': 'employer_id parameter required'}, status=400)
+    
+    @action(detail=True, methods=['post'])
+    def approve(self, request, pk=None):
+        """Approve a form submission and create employee record"""
+        from django.utils import timezone
+        submission = self.get_object()
+        
+        if submission.status != 'pending':
+            return Response({'error': 'Only pending submissions can be approved'}, status=400)
+        
+        try:
+            # Create employee record from form submission
+            employee = Employee.objects.create(
+                employer=submission.employer,
+                employee_id=f"EMP{submission.id.hex[:8].upper()}",
+                first_name=submission.first_name,
+                last_name=submission.last_name,
+                email=submission.email,
+                phone=submission.phone,
+                date_of_birth=submission.date_of_birth,
+                ssn=submission.ssn,
+                address_line1=submission.address_line1,
+                address_line2=submission.address_line2,
+                city=submission.city,
+                state=submission.state,
+                zip_code=submission.zip_code,
+                hire_date=submission.hire_date,
+                job_title=submission.job_title,
+                department=submission.department,
+                salary=submission.salary,
+                hours_per_week=submission.hours_per_week,
+                employment_status='active',
+                gender='M',  # Default, can be updated later
+                marital_status='single'  # Default, can be updated later
+            )
+            
+            # Update submission status
+            submission.status = 'approved'
+            submission.reviewed_by = request.user if request.user.is_authenticated else None
+            submission.reviewed_at = timezone.now()
+            submission.created_employee = employee
+            submission.notes = request.data.get('notes', '')
+            submission.save()
+            
+            return Response({
+                'message': 'Form submission approved and employee created',
+                'employee_id': employee.id,
+                'submission_id': submission.id
+            })
+            
+        except Exception as e:
+            return Response({'error': f'Failed to create employee: {str(e)}'}, status=500)
+    
+    @action(detail=True, methods=['post'])
+    def reject(self, request, pk=None):
+        """Reject a form submission"""
+        from django.utils import timezone
+        submission = self.get_object()
+        
+        if submission.status != 'pending':
+            return Response({'error': 'Only pending submissions can be rejected'}, status=400)
+        
+        submission.status = 'rejected'
+        submission.reviewed_by = request.user if request.user.is_authenticated else None
+        submission.reviewed_at = timezone.now()
+        submission.notes = request.data.get('notes', '')
+        submission.save()
+        
+        return Response({'message': 'Form submission rejected'})
+    
+    @action(detail=True, methods=['post'])
+    def request_changes(self, request, pk=None):
+        """Request changes to a form submission"""
+        from django.utils import timezone
+        submission = self.get_object()
+        
+        if submission.status != 'pending':
+            return Response({'error': 'Only pending submissions can have changes requested'}, status=400)
+        
+        submission.status = 'changes_requested'
+        submission.reviewed_by = request.user if request.user.is_authenticated else None
+        submission.reviewed_at = timezone.now()
+        submission.notes = request.data.get('notes', '')
+        submission.save()
+        
+        return Response({'message': 'Changes requested for form submission'})
+
+class EmployeePortalViewSet(viewsets.ModelViewSet):
+    queryset = EmployeePortalUser.objects.all()
+    serializer_class = EmployeePortalUserSerializer
+    authentication_classes = []  # Bypass DRF auth for custom employee portal auth
+    permission_classes = []
+    
+    @action(detail=False, methods=['post'])
+    def register(self, request):
+        """Register a new employee portal user"""
+        serializer = EmployeePortalRegisterSerializer(data=request.data)
+        if serializer.is_valid():
+            email = serializer.validated_data['email']
+            password = serializer.validated_data['password']
+            form_submission_id = serializer.validated_data.get('form_submission_id')
+            
+            # Check if user already exists
+            if EmployeePortalUser.objects.filter(email=email).exists():
+                return Response({'error': 'User with this email already exists'}, status=400)
+            
+            # Create portal user
+            portal_user = EmployeePortalUser.objects.create(
+                email=email
+            )
+            portal_user.set_password(password)
+            
+            # Link to form submission if provided
+            if form_submission_id:
+                try:
+                    form_submission = EmployeeFormSubmission.objects.get(id=form_submission_id, email=email)
+                    portal_user.form_submission = form_submission
+                except EmployeeFormSubmission.DoesNotExist:
+                    return Response({'error': 'Form submission not found or email mismatch'}, status=400)
+            
+            portal_user.save()
+            
+            # Generate verification token
+            import secrets
+            portal_user.email_verification_token = secrets.token_urlsafe(32)
+            portal_user.save()
+            
+            return Response({
+                'message': 'Registration successful',
+                'user_id': portal_user.id,
+                'email': portal_user.email,
+                'verification_required': not portal_user.email_verified
+            })
+        
+        return Response(serializer.errors, status=400)
+    
+    @action(detail=False, methods=['post'])
+    def login(self, request):
+        """Employee portal login"""
+        serializer = EmployeePortalLoginSerializer(data=request.data)
+        if serializer.is_valid():
+            email = serializer.validated_data['email']
+            password = serializer.validated_data['password']
+            
+            try:
+                portal_user = EmployeePortalUser.objects.get(email=email)
+                if not portal_user.is_active:
+                    return Response({'error': 'Account is disabled'}, status=400)
+                
+                if portal_user.check_password(password):
+                    # Update last login
+                    from django.utils import timezone
+                    portal_user.last_login = timezone.now()
+                    portal_user.save()
+                    
+                    # Generate session token (simple implementation)
+                    import secrets, jwt
+                    from django.conf import settings
+                    
+                    token_payload = {
+                        'user_id': str(portal_user.id),
+                        'email': portal_user.email,
+                        'exp': timezone.now().timestamp() + 86400  # 24 hours
+                    }
+                    
+                    token = jwt.encode(token_payload, getattr(settings, 'SECRET_KEY', 'fallback-secret'), algorithm='HS256')
+                    
+                    user_serializer = EmployeePortalUserSerializer(portal_user)
+                    return Response({
+                        'message': 'Login successful',
+                        'token': token,
+                        'user': user_serializer.data
+                    })
+                else:
+                    return Response({'error': 'Invalid credentials'}, status=400)
+            
+            except EmployeePortalUser.DoesNotExist:
+                return Response({'error': 'Invalid credentials'}, status=400)
+        
+        return Response(serializer.errors, status=400)
+    
+    @action(detail=False, methods=['get'])
+    def me(self, request):
+        """Get current user profile"""
+        # Simple token authentication check
+        auth_header = request.headers.get('Authorization')
+        if not auth_header or not auth_header.startswith('Bearer '):
+            return Response({'error': 'Authentication required'}, status=401)
+        
+        token = auth_header.split(' ')[1]
+        try:
+            import jwt
+            from django.conf import settings
+            
+            payload = jwt.decode(token, getattr(settings, 'SECRET_KEY', 'fallback-secret'), algorithms=['HS256'])
+            user_id = payload['user_id']
+            
+            portal_user = EmployeePortalUser.objects.get(id=user_id)
+            serializer = EmployeePortalUserSerializer(portal_user)
+            return Response(serializer.data)
+            
+        except (jwt.InvalidTokenError, EmployeePortalUser.DoesNotExist):
+            return Response({'error': 'Invalid token'}, status=401)
+    
+    @action(detail=True, methods=['post'])
+    def verify_email(self, request, pk=None):
+        """Verify email with token"""
+        portal_user = self.get_object()
+        token = request.data.get('token')
+        
+        if portal_user.email_verification_token == token:
+            portal_user.email_verified = True
+            portal_user.email_verification_token = ''
+            portal_user.save()
+            return Response({'message': 'Email verified successfully'})
+        
+        return Response({'error': 'Invalid verification token'}, status=400)
+    
+    @action(detail=True, methods=['post'])
+    def change_password(self, request, pk=None):
+        """Change user password"""
+        portal_user = self.get_object()
+        current_password = request.data.get('current_password')
+        new_password = request.data.get('new_password')
+        
+        if not portal_user.check_password(current_password):
+            return Response({'error': 'Current password is incorrect'}, status=400)
+        
+        if len(new_password) < 8:
+            return Response({'error': 'New password must be at least 8 characters'}, status=400)
+        
+        portal_user.set_password(new_password)
+        portal_user.save()
+        
+        return Response({'message': 'Password changed successfully'})

@@ -147,12 +147,20 @@
                                 <a href="#" class="btn btn-outline-success" title="Employees">
                                     <i class="fas fa-users"></i>
                                 </a>
+                                <button class="btn btn-outline-info" title="Import Employees" onclick="openImportModal('{{ employer.id }}')">
+                                    <i class="fas fa-file-import"></i>
+                                </button>
+                                <button class="btn btn-outline-success" title="Add Employee" onclick="openAddEmployeeModal('{{ employer.id }}')">
+                                    <i class="fas fa-user-plus"></i>
+                                </button>
                                 <div class="dropdown">
                                     <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
                                         <i class="fas fa-ellipsis-h"></i>
                                     </button>
                                     <ul class="dropdown-menu">
-                                        <li><a class="dropdown-item" href="#"><i class="fas fa-file-export me-2"></i>Export Data</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="downloadEmployerExport('{{ employer.id }}')"><i class="fas fa-download me-2"></i>Download Export</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="exportEmployerData('{{ employer.id }}')"><i class="fas fa-file-export me-2"></i>Generate Export</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="viewEmployeeSubmissions('{{ employer.id }}')"><i class="fas fa-users me-2"></i>Employee Forms</a></li>
                                         <li><a class="dropdown-item" href="#"><i class="fas fa-chart-bar me-2"></i>View Reports</a></li>
                                         <li><hr class="dropdown-divider"></li>
                                         <li><a class="dropdown-item text-danger" href="#"><i class="fas fa-trash me-2"></i>Terminate</a></li>
@@ -229,6 +237,116 @@
         </div>
     </div>
 </div>
+
+<!-- Import Employees Modal -->
+<div class="modal fade" id="importEmployeesModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Import Employees</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="importEmployeesForm" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-4">
+                        <h6>Excel File Requirements:</h6>
+                        <p class="text-muted mb-3">Your Excel file should contain the following columns:</p>
+                        <ul class="list-unstyled mb-4">
+                            <li><i class="fas fa-check text-success me-2"></i><strong>Name</strong> - Full name of the employee</li>
+                            <li><i class="fas fa-check text-success me-2"></i><strong>Date of Birth</strong> - Employee's birth date (MM/DD/YYYY)</li>
+                            <li><i class="fas fa-check text-success me-2"></i><strong>Status</strong> - Employment status: "FT" (Full Time) or "PT" (Part Time)</li>
+                        </ul>
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Additional optional columns: Email, Phone, Address, Department, Hire Date
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="importFile" class="form-label">Select Excel File *</label>
+                        <input type="file" class="form-control" id="importFile" accept=".xlsx,.xls,.csv" required>
+                        <div class="form-text">Supported formats: .xlsx, .xls, .csv</div>
+                    </div>
+                    <input type="hidden" id="importEmployerId" name="employer_id">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-upload me-2"></i>Import Employees
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Add Single Employee Modal -->
+<div class="modal fade" id="addSingleEmployeeModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add New Employee</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="addSingleEmployeeForm">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="employeeFirstName" class="form-label">First Name *</label>
+                            <input type="text" class="form-control" id="employeeFirstName" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="employeeLastName" class="form-label">Last Name *</label>
+                            <input type="text" class="form-control" id="employeeLastName" required>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <label for="employeeDOB" class="form-label">Date of Birth *</label>
+                            <input type="date" class="form-control" id="employeeDOB" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="employeeStatus" class="form-label">Status *</label>
+                            <select class="form-select" id="employeeStatus" required>
+                                <option value="">Select Status...</option>
+                                <option value="FT">Full Time (FT)</option>
+                                <option value="PT">Part Time (PT)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <label for="employeeEmail" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="employeeEmail">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="employeeId" class="form-label">Employee ID</label>
+                            <input type="text" class="form-control" id="employeeId">
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <label for="employeeHireDate" class="form-label">Hire Date</label>
+                            <input type="date" class="form-control" id="employeeHireDate">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="employeeDepartment" class="form-label">Department</label>
+                            <input type="text" class="form-control" id="employeeDepartment">
+                        </div>
+                    </div>
+                    <input type="hidden" id="addEmployerId" name="employer_id">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Add Employee
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
@@ -289,14 +407,16 @@ document.addEventListener('DOMContentLoaded', function() {
         form.addEventListener('submit', function(e) {
             e.preventDefault();
             
-            const formData = new FormData();
-            formData.append('name', document.getElementById('companyName').value);
-            formData.append('ein', document.getElementById('ein').value);
-            formData.append('effective_date', document.getElementById('effectiveDate').value);
-            formData.append('size', document.getElementById('employeeCount').value);
-            formData.append('contact_name', document.getElementById('contactName').value);
-            formData.append('contact_email', document.getElementById('contactEmail').value);
-            formData.append('address', document.getElementById('address').value);
+            const formData = {
+                name: document.getElementById('companyName').value,
+                ein: document.getElementById('ein').value,
+                effective_date: document.getElementById('effectiveDate').value,
+                size: document.getElementById('employeeCount').value,
+                contact_name: document.getElementById('contactName').value,
+                contact_email: document.getElementById('contactEmail').value,
+                address: document.getElementById('address').value,
+                status: 'active'
+            };
             
             // Get CSRF token
             const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
@@ -304,11 +424,11 @@ document.addEventListener('DOMContentLoaded', function() {
             
             fetch('/api/api/employers/', {
                 method: 'POST',
-                body: formData,
                 headers: {
+                    'Content-Type': 'application/json',
                     'X-CSRFToken': csrfToken,
-                    'Authorization': 'Bearer ' + localStorage.getItem('access_token')
-                }
+                },
+                body: JSON.stringify(formData)
             })
             .then(response => response.json())
             .then(data => {
@@ -328,5 +448,161 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+function exportEmployerData(employerId) {
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+                    document.querySelector('meta[name="csrf-token"]')?.content;
+    
+    fetch('/api/api/export-jobs/generate_aetna_export/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken,
+        },
+        body: JSON.stringify({
+            employer_id: employerId,
+            coverage_type: 'medical'
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.job_id) {
+            alert(`Export created successfully! Job ID: ${data.job_id}. Check the Exports page to download.`);
+        } else {
+            alert(`Error creating export: ${data.error || 'Unknown error'}`);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error creating export');
+    });
+}
+
+function openImportModal(employerId) {
+    document.getElementById('importEmployerId').value = employerId;
+    const modal = new bootstrap.Modal(document.getElementById('importEmployeesModal'));
+    modal.show();
+}
+
+function openAddEmployeeModal(employerId) {
+    document.getElementById('addEmployerId').value = employerId;
+    const modal = new bootstrap.Modal(document.getElementById('addSingleEmployeeModal'));
+    modal.show();
+}
+
+// Handle Import Employees Form
+document.addEventListener('DOMContentLoaded', function() {
+    const importForm = document.getElementById('importEmployeesForm');
+    if (importForm) {
+        importForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const fileInput = document.getElementById('importFile');
+            const employerId = document.getElementById('importEmployerId').value;
+            
+            if (!fileInput.files[0]) {
+                alert('Please select a file to import');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            formData.append('employer_id', employerId);
+            
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+                            document.querySelector('meta[name="csrf-token"]')?.content;
+            
+            fetch('/api/bulk-import/employees/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(`Import successful! ${data.total_created} employees imported.${data.errors.length > 0 ? ` ${data.errors.length} errors occurred.` : ''}`);
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('importEmployeesModal'));
+                    modal.hide();
+                    location.reload();
+                } else {
+                    alert('Import failed: ' + (data.error || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Import failed. Please try again.');
+            });
+        });
+    }
+    
+    // Handle Add Single Employee Form
+    const addEmployeeForm = document.getElementById('addSingleEmployeeForm');
+    if (addEmployeeForm) {
+        addEmployeeForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                employer: document.getElementById('addEmployerId').value,
+                first_name: document.getElementById('employeeFirstName').value,
+                last_name: document.getElementById('employeeLastName').value,
+                date_of_birth: document.getElementById('employeeDOB').value,
+                email: document.getElementById('employeeEmail').value || '',
+                employee_id: document.getElementById('employeeId').value || 'EMP' + Date.now(),
+                hire_date: document.getElementById('employeeHireDate').value || new Date().toISOString().split('T')[0],
+                department: document.getElementById('employeeDepartment').value || '',
+                employment_status: 'active',
+                hours_per_week: document.getElementById('employeeStatus').value === 'FT' ? 40.0 : 20.0,
+                salary: 50000.00,
+                ssn: '000-00-0000',
+                gender: 'M',
+                address_line1: '123 Main St',
+                city: 'City',
+                state: 'ST',
+                zip_code: '12345'
+            };
+            
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+                            document.querySelector('meta[name="csrf-token"]')?.content;
+            
+            fetch('/api/api/employees/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken,
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.id) {
+                    alert('Employee added successfully!');
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('addSingleEmployeeModal'));
+                    modal.hide();
+                    // Clear form
+                    addEmployeeForm.reset();
+                    location.reload();
+                } else {
+                    alert('Error adding employee: ' + (data.error || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error adding employee. Please try again.');
+            });
+        });
+    }
+});
+
+function downloadEmployerExport(employerId) {
+    // Download the latest completed export for this employer
+    window.open(`/api/api/employers/${employerId}/download_latest_export/`, '_blank');
+}
+
+function viewEmployeeSubmissions(employerId) {
+    // Redirect to employee submissions view
+    window.location.href = `/employer-forms/${employerId}/`;
+}
 </script>
 {% endblock %}

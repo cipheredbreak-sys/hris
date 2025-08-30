@@ -4,7 +4,8 @@ from .views import (
     BrokerViewSet, CarrierViewSet, PlanViewSet, 
     EmployerViewSet, EmployerOfferingViewSet, ExportJobViewSet,
     EmployeeViewSet, DependentViewSet, EnrollmentPeriodViewSet,
-    EmployeeEnrollmentViewSet, PlanEnrollmentViewSet, EnrollmentEventViewSet
+    EmployeeEnrollmentViewSet, PlanEnrollmentViewSet, EnrollmentEventViewSet,
+    EmployeeFormSubmissionViewSet, EmployeePortalViewSet
 )
 
 router = DefaultRouter()
@@ -20,6 +21,8 @@ router.register(r'enrollment-periods', EnrollmentPeriodViewSet)
 router.register(r'employee-enrollments', EmployeeEnrollmentViewSet)
 router.register(r'plan-enrollments', PlanEnrollmentViewSet)
 router.register(r'enrollment-events', EnrollmentEventViewSet)
+router.register(r'employee-form-submissions', EmployeeFormSubmissionViewSet)
+router.register(r'employee-portal', EmployeePortalViewSet)
 
 urlpatterns = [
     path('api/', include(router.urls)),

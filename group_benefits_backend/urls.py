@@ -10,7 +10,7 @@ from django.views.generic import TemplateView
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
-from accounts.views import dashboard_view, employers_view, employees_view, benefits_view, reports_view, exports_view, onboarding_wizard_view, bulk_import_employees, download_employee_template, create_plan_templates, carrier_setup_view, system_config_view
+from accounts.views import dashboard_view, employers_view, employees_view, benefits_view, reports_view, exports_view, onboarding_wizard_view, bulk_import_employees, download_employee_template, create_plan_templates, carrier_setup_view, system_config_view, employee_form_view, employer_forms_view, broker_dashboard_view, employee_portal_login_view, employee_portal_dashboard_view
 
 # Swagger/OpenAPI schema configuration
 schema_view = get_schema_view(
@@ -147,6 +147,15 @@ urlpatterns = [
     path('api/bulk-import/employees/', bulk_import_employees, name='bulk_import_employees'),
     path('api/download/employee-template/', download_employee_template, name='download_employee_template'),
     path('api/create/plan-templates/', create_plan_templates, name='create_plan_templates'),
+    
+    # Employee form and employer review
+    path('employee-form/<uuid:employer_id>/', employee_form_view, name='employee_form'),
+    path('employer-forms/<uuid:employer_id>/', employer_forms_view, name='employer_forms'),
+    path('broker-dashboard/', broker_dashboard_view, name='broker_dashboard'),
+    
+    # Employee Portal
+    path('employee-portal/login/', employee_portal_login_view, name='employee_portal_login'),
+    path('employee-portal/dashboard/', employee_portal_dashboard_view, name='employee_portal_dashboard'),
 ]
 
 # Serve media files in development

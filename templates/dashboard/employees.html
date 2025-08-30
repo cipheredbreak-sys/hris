@@ -55,16 +55,18 @@
                 <label for="employerFilter" class="form-label">Employer</label>
                 <select class="form-select" id="employerFilter">
                     <option value="">All Employers</option>
-                    {% comment %} Add employers here dynamically {% endcomment %}
+                    {% for employer in employers %}
+                    <option value="{{ employer.id }}" {% if employer_filter == employer.id|stringformat:"s" %}selected{% endif %}>{{ employer.name }}</option>
+                    {% endfor %}
                 </select>
             </div>
             <div class="col-md-3">
                 <label for="statusFilter" class="form-label">Status</label>
                 <select class="form-select" id="statusFilter">
                     <option value="">All Statuses</option>
-                    <option value="active">Active</option>
-                    <option value="terminated">Terminated</option>
-                    <option value="on_leave">On Leave</option>
+                    <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+                    <option value="terminated" {% if status_filter == 'terminated' %}selected{% endif %}>Terminated</option>
+                    <option value="on_leave" {% if status_filter == 'on_leave' %}selected{% endif %}>On Leave</option>
                 </select>
             </div>
             <div class="col-md-2">
@@ -144,7 +146,7 @@
                                         <i class="fas fa-ellipsis-h"></i>
                                     </button>
                                     <ul class="dropdown-menu">
-                                        <li><a class="dropdown-item" href="#"><i class="fas fa-file-export me-2"></i>Export Data</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="exportEmployeeData('{{ employee.employer.id }}')"><i class="fas fa-file-export me-2"></i>Export Data</a></li>
                                         <li><a class="dropdown-item" href="#"><i class="fas fa-envelope me-2"></i>Send Invite</a></li>
                                         <li><hr class="dropdown-divider"></li>
                                         <li><a class="dropdown-item text-danger" href="#"><i class="fas fa-user-times me-2"></i>Terminate</a></li>
@@ -200,12 +202,31 @@
                     </div>
                     <div class="row mt-3">
                         <div class="col-md-6">
+                            <label for="employerSelect" class="form-label">Employer *</label>
+                            <select class="form-select" id="employerSelect" required>
+                                <option value="">Select an employer...</option>
+                                {% for employer in employers %}
+                                <option value="{{ employer.id }}">{{ employer.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
                             <label for="hireDate" class="form-label">Hire Date *</label>
                             <input type="date" class="form-control" id="hireDate" required>
                         </div>
+                    </div>
+                    <div class="row mt-3">
                         <div class="col-md-6">
                             <label for="department" class="form-label">Department</label>
                             <input type="text" class="form-control" id="department">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="employmentStatus" class="form-label">Employment Status</label>
+                            <select class="form-select" id="employmentStatus">
+                                <option value="active">Active</option>
+                                <option value="terminated">Terminated</option>
+                                <option value="on_leave">On Leave</option>
+                            </select>
                         </div>
                     </div>
                 </div>
@@ -269,5 +290,83 @@ document.getElementById('searchEmployee').addEventListener('keypress', function(
         filterEmployees();
     }
 });
+
+// Add Employee Form Handler
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('#addEmployeeModal form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                first_name: document.getElementById('firstName').value,
+                last_name: document.getElementById('lastName').value,
+                email: document.getElementById('employeeEmail').value,
+                employee_id: document.getElementById('employeeId').value,
+                employer: document.getElementById('employerSelect').value,
+                hire_date: document.getElementById('hireDate').value,
+                department: document.getElementById('department').value,
+                employment_status: document.getElementById('employmentStatus').value || 'active'
+            };
+            
+            // Get CSRF token
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+                            document.querySelector('meta[name="csrf-token"]')?.content;
+            
+            fetch('/api/api/employees/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken,
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.id) {
+                    // Success - close modal and refresh page
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('addEmployeeModal'));
+                    modal.hide();
+                    location.reload();
+                } else {
+                    alert('Error creating employee: ' + (data.error || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error creating employee. Please try again.');
+            });
+        });
+    }
+});
+
+function exportEmployeeData(employerId) {
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+                    document.querySelector('meta[name="csrf-token"]')?.content;
+    
+    fetch('/api/api/export-jobs/generate_aetna_export/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken,
+        },
+        body: JSON.stringify({
+            employer_id: employerId,
+            coverage_type: 'medical'
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.job_id) {
+            alert(`Export created successfully! Job ID: ${data.job_id}. Check the Exports page to download.`);
+        } else {
+            alert(`Error creating export: ${data.error || 'Unknown error'}`);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error creating export');
+    });
+}
 </script>
 {% endblock %}

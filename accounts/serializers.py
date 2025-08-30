@@ -23,7 +23,7 @@ class OrganizationDetailSerializer(serializers.ModelSerializer):
         return obj.memberships.count()
 
 class UserProfileSerializer(serializers.ModelSerializer):
-    organization = OrganizationSerializer(read_only=True)
+    organization = OrganizationListSerializer(read_only=True)
     organization_id = serializers.IntegerField(write_only=True, required=False, allow_null=True)
     
     class Meta:
@@ -199,7 +199,7 @@ class MembershipSerializer(serializers.ModelSerializer):
 class LoginResponseSerializer(serializers.Serializer):
     access = serializers.CharField()
     refresh = serializers.CharField()
-    user = UserSerializer(read_only=True)
+    user = UserListSerializer(read_only=True)
 
 # Serializer for social auth
 class SocialAuthSerializer(serializers.Serializer):
